@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tied — Bondage Ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0f0d0e;
+  --bg2:#161214;
+  --bg3:#1e1820;
+  --rose:#c49aaa;
+  --rose2:#e8c4d0;
+  --rose-dim:rgba(196,154,170,0.08);
+  --rose-mid:rgba(196,154,170,0.2);
+  --text:#f5f0f2;
+  --text2:#a89aa0;
+  --text3:#5a4f54;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(196,154,170,0.18);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;align-items:center;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.03;pointer-events:none;z-index:0;
+}
+.back{position:fixed;top:1.1rem;left:1.25rem;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.14em;color:var(--text3);text-decoration:none;z-index:101;}
+.back:hover{color:var(--rose);}
+
+/* Gate */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:2rem;text-align:center;}
+.gate-glyph{font-size:36px;margin-bottom:1.25rem;opacity:0.3;color:var(--rose);}
+#gate h1{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--text);margin-bottom:0.5rem;letter-spacing:0.06em;}
+#gate p{font-size:13px;color:var(--text2);line-height:1.75;max-width:300px;margin:0 auto 2rem;}
+.gate-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;}
+.btn-enter{padding:14px;background:var(--rose);color:#0f0d0e;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-leave{padding:14px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+
+/* App */
+#app{display:none;flex-direction:column;width:100%;height:100%;max-width:430px;position:relative;z-index:1;}
+#app.show{display:flex;}
+
+header{padding:1.25rem 1.5rem 0;flex-shrink:0;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;font-style:italic;color:var(--rose);letter-spacing:0.06em;}
+.logo-sub{font-size:10px;letter-spacing:0.18em;color:var(--text3);text-transform:uppercase;margin-top:2px;}
+
+/* Mode tabs */
+.mode-tabs{display:flex;padding:1rem 1.5rem 0;gap:0;flex-shrink:0;}
+.mode-tab{
+  flex:1;padding:10px;text-align:center;
+  font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--text3);cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:all 0.2s;
+}
+.mode-tab.active{color:var(--rose);border-bottom:1px solid var(--rose);}
+
+/* Screens */
+.screen{flex:1;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ── RANDOMISE SCREEN ── */
+#screen-randomise{padding:1.25rem 1.5rem;gap:0.875rem;overflow-y:auto;}
+
+.dice-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1rem;
+  transition:border-color 0.3s;
+}
+.dice-card.rolled{border-color:var(--border2);}
+.die-wrap{flex-shrink:0;width:56px;height:56px;perspective:180px;}
+.die{width:56px;height:56px;position:relative;transform-style:preserve-3d;transform:rotateX(0deg) rotateY(0deg);}
+.die.rolling{animation:roll 0.7s ease-out forwards;}
+@keyframes roll{
+  0%{transform:rotateX(0) rotateY(0);}
+  25%{transform:rotateX(180deg) rotateY(90deg);}
+  50%{transform:rotateX(360deg) rotateY(200deg);}
+  75%{transform:rotateX(280deg) rotateY(340deg);}
+  100%{transform:rotateX(var(--rx)) rotateY(var(--ry));}
+}
+.face{position:absolute;width:56px;height:56px;background:var(--bg2);border:1px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;backface-visibility:hidden;}
+.face-front{transform:translateZ(28px);}
+.face-back{transform:rotateY(180deg) translateZ(28px);}
+.face-right{transform:rotateY(90deg) translateZ(28px);}
+.face-left{transform:rotateY(-90deg) translateZ(28px);}
+.face-top{transform:rotateX(90deg) translateZ(28px);}
+.face-bottom{transform:rotateX(-90deg) translateZ(28px);}
+
+.dice-info{flex:1;min-width:0;}
+.dice-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.dice-result{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--text3);line-height:1.35;transition:color 0.3s;}
+.dice-card.rolled .dice-result{color:var(--text);}
+.dice-reroll{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1px solid var(--border2);color:var(--rose);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.dice-reroll:hover{background:var(--rose-dim);}
+.dice-reroll:active{transform:scale(0.9);}
+
+.rand-bottom{padding:1rem 1.5rem 1.5rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;flex-shrink:0;}
+.btn-roll{width:100%;padding:14px;background:var(--rose);color:#0f0d0e;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:opacity 0.2s,transform 0.1s;}
+.btn-roll:active{transform:scale(0.98);}
+.btn-reveal-rand{width:100%;padding:13px;background:transparent;color:var(--rose);border:1px solid var(--border2);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.btn-reveal-rand.visible{opacity:1;pointer-events:auto;}
+
+/* Reveal overlay */
+#reveal{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column;overflow-y:auto;padding:2rem 1.5rem;align-items:center;gap:0.875rem;}
+#reveal.show{display:flex;}
+.reveal-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;font-style:italic;color:var(--rose);text-align:center;}
+.reveal-sub{font-size:11px;color:var(--text3);letter-spacing:0.12em;text-align:center;text-transform:uppercase;}
+.reveal-item{width:100%;max-width:380px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1rem 1.25rem;opacity:0;transform:translateY(10px);transition:all 0.35s;}
+.reveal-item.show{opacity:1;transform:translateY(0);}
+.reveal-item-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);}
+.reveal-item-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--text);margin-top:4px;line-height:1.4;}
+.reveal-tip{width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border2);border-radius:3px;padding:1.25rem;opacity:0;transform:translateY(10px);transition:all 0.4s;}
+.reveal-tip.show{opacity:1;transform:translateY(0);}
+.reveal-tip-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--rose);margin-bottom:0.6rem;}
+.reveal-tip-text{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--text2);line-height:1.75;}
+.reveal-actions{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;padding-bottom:1rem;}
+.btn-again{width:100%;padding:14px;background:var(--rose);color:#0f0d0e;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-back-reveal{width:100%;padding:14px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+
+/* ── EXPLORE SCREEN ── */
+#screen-explore{flex-direction:column;overflow:hidden;}
+
+.explore-filters{padding:1rem 1.5rem;display:flex;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.filter-btn{font-size:11px;padding:5px 12px;border-radius:2px;border:1px solid var(--border);color:var(--text3);cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:0.06em;background:transparent;transition:all 0.15s;}
+.filter-btn:hover{border-color:var(--border2);color:var(--text2);}
+.filter-btn.active{border-color:var(--border2);background:var(--rose-dim);color:var(--rose);}
+
+.explore-list{flex:1;overflow-y:auto;padding:1rem 1.5rem;display:flex;flex-direction:column;gap:10px;}
+
+.explore-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:1.1rem 1.25rem;cursor:pointer;transition:border-color 0.2s,background 0.2s;
+}
+.explore-card:hover{border-color:var(--border2);background:var(--bg2);}
+.explore-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.explore-card-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--text);}
+.explore-card-level{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 8px;border-radius:2px;border:1px solid var(--border);}
+.explore-card-level.beginner{color:#7aaa88;border-color:rgba(122,170,136,0.3);}
+.explore-card-level.intermediate{color:#c4a870;border-color:rgba(196,168,112,0.3);}
+.explore-card-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.explore-card-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.explore-tag{font-size:10px;letter-spacing:0.06em;color:var(--text3);border:1px solid var(--border);padding:2px 8px;border-radius:2px;}
+
+/* Detail overlay */
+#detail{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column;overflow-y:auto;}
+#detail.show{display:flex;}
+.detail-header{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+.detail-back{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);cursor:pointer;margin-bottom:1rem;display:inline-block;}
+.detail-back:hover{color:var(--rose);}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;font-style:italic;color:var(--text);margin-bottom:4px;}
+.detail-level-row{display:flex;align-items:center;gap:8px;}
+.detail-level{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:2px;border:1px solid;}
+.detail-level.beginner{color:#7aaa88;border-color:rgba(122,170,136,0.3);}
+.detail-level.intermediate{color:#c4a870;border-color:rgba(196,168,112,0.3);}
+.detail-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+.detail-section-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--rose);margin-bottom:0.5rem;}
+.detail-section-text{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text2);line-height:1.75;font-style:italic;}
+.detail-needs{display:flex;flex-wrap:wrap;gap:6px;}
+.detail-need{font-size:12px;color:var(--text2);border:1px solid var(--border2);padding:4px 10px;border-radius:2px;}
+.detail-warning{background:rgba(196,112,96,0.08);border:1px solid rgba(196,112,96,0.2);border-radius:3px;padding:0.875rem 1rem;}
+.detail-warning-label{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#c47060;margin-bottom:4px;}
+.detail-warning-text{font-size:13px;color:var(--text2);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<a class="back" href="../">&#9664; INDEX</a>
+
+<div id="gate">
+  <div class="gate-glyph">✦</div>
+  <h1>Tied</h1>
+  <p>Bondage ideas and inspiration for couples. All content is for consenting adults only.</p>
+  <div class="gate-btns">
+    <button class="btn-enter" id="btn-enter">I'm 18+ — Enter</button>
+    <button class="btn-leave" id="btn-leave">Leave</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">Tied</div>
+    <div class="logo-sub">Bondage Ideas for Couples</div>
+  </header>
+
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="tab-randomise">Randomise</div>
+    <div class="mode-tab" id="tab-explore">Explore</div>
+  </div>
+
+  <!-- Randomise Screen -->
+  <div class="screen active" id="screen-randomise">
+    <div id="dice-area"></div>
+    <div class="rand-bottom">
+      <button class="btn-roll" id="btn-roll">Roll All</button>
+      <button class="btn-reveal-rand" id="btn-reveal-rand">See Tonight's Session →</button>
+    </div>
+  </div>
+
+  <!-- Explore Screen -->
+  <div class="screen" id="screen-explore">
+    <div class="explore-filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="beginner">Beginner</button>
+      <button class="filter-btn" data-filter="intermediate">Intermediate</button>
+    </div>
+    <div class="explore-list" id="explore-list"></div>
+  </div>
+</div>
+
+<!-- Reveal Overlay -->
+<div id="reveal">
+  <div class="reveal-title">Tonight's Session</div>
+  <div class="reveal-sub">Your scene is set</div>
+  <div id="reveal-items"></div>
+  <div class="reveal-tip" id="reveal-tip">
+    <div class="reveal-tip-label">A note for tonight</div>
+    <div class="reveal-tip-text" id="reveal-tip-text"></div>
+  </div>
+  <div class="reveal-actions">
+    <button class="btn-again" id="btn-again">Roll Again</button>
+    <button class="btn-back-reveal" id="btn-back-reveal">← Adjust</button>
+  </div>
+</div>
+
+<!-- Detail Overlay -->
+<div id="detail">
+  <div class="detail-header">
+    <div class="detail-back" id="detail-back">← Back</div>
+    <div class="detail-name" id="detail-name"></div>
+    <div class="detail-level-row">
+      <div class="detail-level" id="detail-level"></div>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div>
+      <div class="detail-section-label">What it is</div>
+      <div class="detail-section-text" id="detail-desc"></div>
+    </div>
+    <div>
+      <div class="detail-section-label">You'll need</div>
+      <div class="detail-needs" id="detail-needs"></div>
+    </div>
+    <div>
+      <div class="detail-section-label">How to</div>
+      <div class="detail-section-text" id="detail-how"></div>
+    </div>
+    <div>
+      <div class="detail-section-label">Tips</div>
+      <div class="detail-section-text" id="detail-tips"></div>
+    </div>
+    <div id="detail-warning-wrap" style="display:none;">
+      <div class="detail-warning">
+        <div class="detail-warning-label">Safety note</div>
+        <div class="detail-warning-text" id="detail-warning"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+
+const DICE_CATEGORIES = [
+  {
+    id: 'position',
+    label: 'Position',
+    icon: '🎀',
+    items: [
+      'Wrists above head',
+      'Spread eagle',
+      'Frogtied',
+      'Wrists behind back',
+      'Seated & bound',
+      'Chest harness',
+      'Wrists to ankles',
+      'Standing & bound'
+    ]
+  },
+  {
+    id: 'restraint',
+    label: 'Restraint',
+    icon: '🔗',
+    items: [
+      'Soft rope',
+      'Handcuffs',
+      'Silk scarves',
+      'Velcro cuffs',
+      'Satin ribbon',
+      'Bondage tape',
+      'Leather cuffs',
+      'Necktie or belt'
+    ]
+  },
+  {
+    id: 'sensory',
+    label: 'Sensory',
+    icon: '👁',
+    items: [
+      'Blindfold only',
+      'Nothing — full sight',
+      'Blindfold & earplugs',
+      'Eyes open, face covered',
+      'Soft music only',
+      'Blindfold & light restraint',
+      'Complete darkness',
+      'All senses intact'
+    ]
+  },
+  {
+    id: 'activity',
+    label: 'What Happens',
+    icon: '✦',
+    items: [
+      'Left to wait & wonder',
+      'Slowly teased',
+      'Worshipped completely',
+      'Used however they want',
+      'Edged repeatedly',
+      'Touch only — nothing more',
+      'Completely at their mercy',
+      'Denied until they beg'
+    ]
+  }
+];
+
+const TIPS = [
+  r => `Start with a quick check-in before you begin — make sure you're both comfortable with ${r.restraint.toLowerCase()} and establish a safeword if you haven't already.`,
+  r => `${r.sensory} changes everything about how the session feels. Take it slowly at first and check in with each other as you go.`,
+  r => `With ${r.position.toLowerCase()}, make sure nothing is too tight — you should always be able to fit two fingers between the restraint and skin.`,
+  r => `${r.activity} works best when you're both fully in the moment. Put your phones away and take your time.`,
+  r => `Keep a pair of scissors nearby when using ${r.restraint.toLowerCase()} — just in case you need to get out quickly.`
+];
+
+const EXPLORE_ITEMS = [
+  {
+    id: 'wrists-above',
+    name: 'Wrists Above Head',
+    level: 'beginner',
+    desc: 'The simplest and most accessible bondage position. One partner has their wrists bound together and secured above their head — to a headboard, hook, or simply held in place.',
+    needs: ['Soft rope', 'Cuffs or scarves', 'Headboard or anchor point'],
+    how: 'Bind the wrists together with your chosen restraint, leaving enough room to fit two fingers beneath. Secure to the headboard or ask them to hold the position themselves. The vulnerability comes from the posture as much as the restraint.',
+    tips: 'This works even without a headboard — simply binding the wrists together and asking them not to move can be equally effective. Check in regularly and watch for tingling or numbness in the hands.',
+    warning: 'Never tie above the head so tightly that circulation is restricted. Hands should remain warm and responsive throughout.'
+  },
+  {
+    id: 'spread-eagle',
+    name: 'Spread Eagle',
+    level: 'beginner',
+    desc: 'Both wrists and ankles are secured to the four corners of the bed, leaving the person completely open and unable to close themselves off. One of the most classic positions in bondage.',
+    needs: ['Four restraints', 'Bed with posts or corners', 'Soft rope or cuffs'],
+    how: 'Secure each limb separately to a corner of the bed. The restraints should be firm but never cutting into skin. The person should be comfortable lying flat — add a pillow under the head or hips if needed.',
+    tips: 'Use under-bed restraint straps if your bed has no posts — these are inexpensive, discrete, and make this position much easier to set up and take down quickly.',
+    warning: 'Check all four points regularly. Arms and legs can go numb surprisingly quickly in this position — build in regular check-ins.'
+  },
+  {
+    id: 'frogtie',
+    name: 'Frogtie',
+    level: 'beginner',
+    desc: 'Each ankle is bound to the corresponding thigh, keeping the legs bent and open. The name comes from the frog-like position it creates. Comfortable for extended periods and very accessible for beginners.',
+    needs: ['Soft rope or two scarves', 'Comfortable surface'],
+    how: 'Ask your partner to bend their knee so their heel meets their thigh. Wrap the restraint around both the ankle and thigh together, securing them in place. Repeat on the other side. The hips stay free and moveable.',
+    tips: 'This position works beautifully combined with a wrist restraint. It\'s also one of the most comfortable for longer sessions as the legs are in a natural bent position rather than extended.',
+    warning: 'Avoid putting pressure on the back of the knee. The rope or restraint should wrap around the ankle and thigh, not across the joint itself.'
+  },
+  {
+    id: 'wrists-behind',
+    name: 'Wrists Behind Back',
+    level: 'beginner',
+    desc: 'Both wrists are bound behind the back, creating a helpless, exposed feeling. One of the most psychologically powerful positions despite its simplicity.',
+    needs: ['Handcuffs', 'Soft rope', 'Or bondage tape'],
+    how: 'Have your partner place their hands behind their back, wrists together. Secure them with your chosen restraint. This works standing, kneeling, or lying face down. The bound person can kneel, be bent over a surface, or lie flat.',
+    tips: 'Handcuffs work well here but can be uncomfortable for longer sessions. Soft rope or velcro cuffs are kinder on the wrists. Always have a quick-release option available.',
+    warning: 'This position puts pressure on the shoulders over time. Keep sessions shorter or check in frequently. Never leave someone alone with their hands bound behind their back.'
+  },
+  {
+    id: 'seated-bound',
+    name: 'Seated & Bound',
+    level: 'beginner',
+    desc: 'The partner is seated in a chair and bound in place — wrists to the arms of the chair, ankles to the legs. A classic scenario that works well with roleplaying.',
+    needs: ['Chair with arms', 'Rope or scarves', 'Extra length for ankles'],
+    how: 'Seat your partner in a sturdy chair. Bind each wrist to the arm of the chair separately, then each ankle to the corresponding chair leg. The binding can be as simple or elaborate as you like — even a single wrist and ankle restraint creates the feeling.',
+    tips: 'A wooden or metal chair works better than a soft chair — the person won\'t sink into it and you can secure restraints more easily. Blindfolding in this position adds a lot.',
+    warning: 'Make sure the chair is stable and won\'t tip. Don\'t bind the torso to the back of the chair — this can restrict breathing.'
+  },
+  {
+    id: 'chest-harness',
+    name: 'Chest Harness',
+    level: 'intermediate',
+    desc: 'Rope is wrapped around the chest and torso in a pattern that frames the body and creates a visually striking effect. Can be worn on its own or combined with other restraints.',
+    needs: ['Soft rope — at least 8m', 'Basic knot knowledge'],
+    how: 'Start with a simple double column wrap around the chest just above and below the chest. Cross behind the back and bring forward, repeating to create two or three horizontal bands. The harness should sit snugly but never restrict breathing. Many tutorials online can walk you through specific patterns.',
+    tips: 'This is as much decorative as it is restrictive. The feeling of rope against skin throughout a session, even without being fully immobilised, is powerful. Start simple — two bands is enough for a first attempt.',
+    warning: 'Never wrap rope around the throat or neck. Check regularly that the chest can expand fully for normal breathing. If your partner says anything feels tight in their chest or they feel short of breath, remove immediately.'
+  },
+  {
+    id: 'wrists-to-ankles',
+    name: 'Wrists to Ankles',
+    level: 'intermediate',
+    desc: 'The wrists are bound to the ankles, pulling the body into a compact, fully exposed position. A step up from basic restraints — more restrictive and more vulnerable.',
+    needs: ['Rope or long restraints', 'Comfortable surface'],
+    how: 'Have your partner lie on their back with knees bent up toward the chest. Bind wrists and ankles together — either same side (right wrist to right ankle) or crossed. The position naturally curves the body and creates full exposure. A pillow under the lower back helps.',
+    tips: 'Check that the position isn\'t straining the lower back. This works better for shorter, more intense sessions than extended play. The vulnerability of the position means checking in frequently is especially important.',
+    warning: 'This position strains the lower back and hip flexors over time. Build in regular breaks and never leave someone in this position unattended.'
+  },
+  {
+    id: 'standing-bound',
+    name: 'Standing & Bound',
+    level: 'intermediate',
+    desc: 'The partner stands with wrists secured above them to an anchor point — a door frame, ceiling hook, or held post. Combines exposure with physical tension in a way lying positions don\'t.',
+    needs: ['Overhead anchor point', 'Rope or cuffs', 'Something to stand on if needed'],
+    how: 'Secure the wrists together first, then raise them above the head and attach to your anchor point. The arms should be raised but not straining — slightly bent is fine. The feet should be flat on the floor. Door frame hooks or over-door restraint anchors work well for this.',
+    tips: 'The standing position creates a different kind of vulnerability — the person can\'t sink into a surface or shift their weight easily. Combining with a blindfold works particularly well here.',
+    warning: 'Never secure so that the person is on their tiptoes or bearing weight through their wrists. They need to be able to stand flat-footed comfortably. Have them sit or lie down immediately if they feel dizzy or faint.'
+  }
+];
+
+// ── STATE ─────────────────────────────────────────────
+const FACE_ROTS = [
+  {rx:'0deg',ry:'0deg'},{rx:'0deg',ry:'180deg'},
+  {rx:'0deg',ry:'-90deg'},{rx:'0deg',ry:'90deg'},
+  {rx:'-90deg',ry:'0deg'},{rx:'90deg',ry:'0deg'}
+];
+let results = {};
+let currentFilter = 'all';
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// ── INIT ──────────────────────────────────────────────
+function enterApp(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  buildDice();
+  buildExplore();
+}
+
+// ── TABS ──────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById(`screen-${tab}`).classList.add('active');
+}
+
+// ── RANDOMISE ─────────────────────────────────────────
+function buildDice(){
+  const area = document.getElementById('dice-area');
+  area.innerHTML = '';
+  area.style.cssText = 'flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:0.875rem;';
+  DICE_CATEGORIES.forEach(cat => {
+    const card = document.createElement('div');
+    card.className = 'dice-card';
+    card.id = `card-${cat.id}`;
+    card.innerHTML = `
+      <div class="die-wrap">
+        <div class="die" id="die-${cat.id}" style="--rx:0deg;--ry:0deg;">
+          <div class="face face-front">${cat.icon}</div>
+          <div class="face face-back">${cat.icon}</div>
+          <div class="face face-right">${cat.icon}</div>
+          <div class="face face-left">${cat.icon}</div>
+          <div class="face face-top">${cat.icon}</div>
+          <div class="face face-bottom">${cat.icon}</div>
+        </div>
+      </div>
+      <div class="dice-info">
+        <div class="dice-label">${cat.label}</div>
+        <div class="dice-result" id="result-${cat.id}">Tap ↻ to roll</div>
+      </div>
+      <button class="dice-reroll" data-id="${cat.id}" aria-label="Roll ${cat.label}">↻</button>
+    `;
+    area.appendChild(card);
+  });
+  area.querySelectorAll('.dice-reroll').forEach(btn => {
+    btn.addEventListener('click', () => rollOne(btn.dataset.id));
+  });
+}
+
+function rollOne(id){
+  const cat = DICE_CATEGORIES.find(c => c.id === id);
+  const die = document.getElementById(`die-${id}`);
+  const resultEl = document.getElementById(`result-${id}`);
+  const card = document.getElementById(`card-${id}`);
+  const winner = pick(cat.items);
+  results[id] = winner;
+  const rot = pick(FACE_ROTS);
+  die.style.setProperty('--rx', rot.rx);
+  die.style.setProperty('--ry', rot.ry);
+  die.classList.remove('rolling');
+  void die.offsetWidth;
+  die.classList.add('rolling');
+  setTimeout(() => {
+    resultEl.textContent = winner;
+    card.classList.add('rolled');
+    checkAllRolled();
+  }, 680);
+}
+
+function rollAll(){
+  results = {};
+  document.getElementById('btn-reveal-rand').classList.remove('visible');
+  DICE_CATEGORIES.forEach((cat, i) => {
+    setTimeout(() => rollOne(cat.id), i * 130);
+  });
+}
+
+function checkAllRolled(){
+  if(DICE_CATEGORIES.every(c => results[c.id])){
+    document.getElementById('btn-reveal-rand').classList.add('visible');
+  }
+}
+
+function showReveal(){
+  document.getElementById('reveal').classList.add('show');
+  const itemsEl = document.getElementById('reveal-items');
+  itemsEl.innerHTML = '';
+  DICE_CATEGORIES.forEach((cat, i) => {
+    const val = results[cat.id] || pick(cat.items);
+    const d = document.createElement('div');
+    d.className = 'reveal-item';
+    d.innerHTML = `<div class="reveal-item-label">${cat.icon} ${cat.label}</div><div class="reveal-item-val">${val}</div>`;
+    itemsEl.appendChild(d);
+    setTimeout(() => d.classList.add('show'), i * 100 + 50);
+  });
+  const tipData = {
+    position: results.position || pick(DICE_CATEGORIES[0].items),
+    restraint: results.restraint || pick(DICE_CATEGORIES[1].items),
+    sensory: results.sensory || pick(DICE_CATEGORIES[2].items),
+    activity: results.activity || pick(DICE_CATEGORIES[3].items)
+  };
+  document.getElementById('reveal-tip-text').textContent = pick(TIPS)(tipData);
+  const tipEl = document.getElementById('reveal-tip');
+  setTimeout(() => tipEl.classList.add('show'), DICE_CATEGORIES.length * 100 + 150);
+}
+
+function closeReveal(){
+  document.getElementById('reveal').classList.remove('show');
+  document.getElementById('reveal-tip').classList.remove('show');
+}
+
+function startOver(){
+  results = {};
+  closeReveal();
+  document.getElementById('btn-reveal-rand').classList.remove('visible');
+  buildDice();
+}
+
+// ── EXPLORE ───────────────────────────────────────────
+function buildExplore(filter){
+  filter = filter || currentFilter;
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  const list = document.getElementById('explore-list');
+  list.innerHTML = '';
+  const items = filter === 'all' ? EXPLORE_ITEMS : EXPLORE_ITEMS.filter(i => i.level === filter);
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'explore-card';
+    card.innerHTML = `
+      <div class="explore-card-top">
+        <div class="explore-card-name">${item.name}</div>
+        <div class="explore-card-level ${item.level}">${item.level}</div>
+      </div>
+      <div class="explore-card-desc">${item.desc.substring(0, 90)}...</div>
+      <div class="explore-card-tags">
+        ${item.needs.slice(0,3).map(n => `<span class="explore-tag">${n}</span>`).join('')}
+      </div>
+    `;
+    card.addEventListener('click', () => showDetail(item));
+    list.appendChild(card);
+  });
+}
+
+function showDetail(item){
+  document.getElementById('detail-name').textContent = item.name;
+  const levelEl = document.getElementById('detail-level');
+  levelEl.textContent = item.level;
+  levelEl.className = `detail-level ${item.level}`;
+  document.getElementById('detail-desc').textContent = item.desc;
+  document.getElementById('detail-how').textContent = item.how;
+  document.getElementById('detail-tips').textContent = item.tips;
+  const needsEl = document.getElementById('detail-needs');
+  needsEl.innerHTML = item.needs.map(n => `<span class="detail-need">${n}</span>`).join('');
+  const warnWrap = document.getElementById('detail-warning-wrap');
+  if(item.warning){
+    document.getElementById('detail-warning').textContent = item.warning;
+    warnWrap.style.display = 'block';
+  } else {
+    warnWrap.style.display = 'none';
+  }
+  document.getElementById('detail').classList.add('show');
+  document.getElementById('detail').scrollTop = 0;
+}
+
+function closeDetail(){
+  document.getElementById('detail').classList.remove('show');
+}
+
+// ── WIRE UP ───────────────────────────────────────────
+document.getElementById('btn-enter').addEventListener('click', enterApp);
+document.getElementById('btn-leave').addEventListener('click', () => { location.href = 'https://google.com'; });
+document.getElementById('btn-roll').addEventListener('click', rollAll);
+document.getElementById('btn-reveal-rand').addEventListener('click', showReveal);
+document.getElementById('btn-again').addEventListener('click', startOver);
+document.getElementById('btn-back-reveal').addEventListener('click', closeReveal);
+document.getElementById('tab-randomise').addEventListener('click', () => switchTab('randomise'));
+document.getElementById('tab-explore').addEventListener('click', () => switchTab('explore'));
+document.getElementById('detail-back').addEventListener('click', closeDetail);
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => buildExplore(btn.dataset.filter));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CNC — Scenario Dice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#09080a;--bg2:#100f12;--bg3:#18161a;
+  --accent:#9e7eb8;--accent2:#c4a8e0;
+  --accent-dim:rgba(158,126,184,0.08);--accent-mid:rgba(158,126,184,0.25);
+  --text:#f0ecf5;--text2:#9a94a6;--text3:#46424e;
+  --border:rgba(255,255,255,0.06);--border2:rgba(158,126,184,0.2);
+  --red:#a05060;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;align-items:center;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.04;pointer-events:none;z-index:0;
+}
+.back{position:fixed;top:1.1rem;left:1.25rem;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.14em;color:var(--text3);text-decoration:none;z-index:101;}
+.back:hover{color:var(--accent);}
+
+/* Gate */
+#gate{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;padding:2rem;text-align:center;
+}
+.gate-glyph{font-size:40px;margin-bottom:1.25rem;opacity:0.35;color:var(--accent);}
+#gate h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--text);margin-bottom:0.5rem;letter-spacing:0.04em;}
+#gate p{font-size:13px;color:var(--text2);line-height:1.75;max-width:300px;margin:0 auto 0.75rem;}
+.gate-notice{
+  font-size:11px;color:var(--text3);line-height:1.6;max-width:280px;
+  margin:0 auto 2rem;padding:0.75rem;border:1px solid var(--border);
+  border-radius:2px;letter-spacing:0.02em;
+}
+.gate-notice strong{color:var(--accent);font-weight:500;}
+.gate-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;}
+.btn-enter{padding:14px;background:var(--accent);color:#09080a;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-leave{padding:14px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+
+/* App */
+#app{display:none;flex-direction:column;width:100%;height:100%;max-width:430px;position:relative;z-index:1;}
+#app.show{display:flex;}
+
+header{padding:1.25rem 1.5rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;font-style:italic;color:var(--accent);letter-spacing:0.04em;}
+.header-sub{font-size:10px;letter-spacing:0.16em;color:var(--text3);text-transform:uppercase;}
+
+/* Safeword bar */
+.safeword-bar{
+  padding:0.6rem 1.5rem;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  font-size:11px;color:var(--text3);letter-spacing:0.06em;
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+}
+.safeword-bar span{color:var(--accent);font-weight:500;}
+
+/* Main */
+.main{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:0.875rem;}
+
+/* Dice cards */
+.dice-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1.1rem;
+  transition:border-color 0.3s;
+}
+.dice-card.rolled{border-color:var(--border2);}
+
+/* 3D die */
+.die-wrap{flex-shrink:0;width:60px;height:60px;perspective:200px;}
+.die{
+  width:60px;height:60px;position:relative;
+  transform-style:preserve-3d;
+  transform:rotateX(0deg) rotateY(0deg);
+}
+.die.rolling{animation:diceRoll 0.75s ease-out forwards;}
+@keyframes diceRoll{
+  0%  {transform:rotateX(0) rotateY(0);}
+  25% {transform:rotateX(200deg) rotateY(100deg);}
+  50% {transform:rotateX(380deg) rotateY(200deg);}
+  75% {transform:rotateX(300deg) rotateY(340deg);}
+  100%{transform:rotateX(var(--rx)) rotateY(var(--ry));}
+}
+.face{
+  position:absolute;width:60px;height:60px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;backface-visibility:hidden;
+}
+.face-front {transform:translateZ(30px);}
+.face-back  {transform:rotateY(180deg) translateZ(30px);}
+.face-right {transform:rotateY(90deg) translateZ(30px);}
+.face-left  {transform:rotateY(-90deg) translateZ(30px);}
+.face-top   {transform:rotateX(90deg) translateZ(30px);}
+.face-bottom{transform:rotateX(-90deg) translateZ(30px);}
+
+.dice-info{flex:1;min-width:0;}
+.dice-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.dice-result{
+  font-family:'Playfair Display',serif;font-size:16px;font-style:italic;
+  color:var(--text3);line-height:1.35;transition:color 0.3s;
+}
+.dice-card.rolled .dice-result{color:var(--text);}
+.dice-reroll{
+  flex-shrink:0;width:34px;height:34px;border-radius:50%;
+  background:transparent;border:1px solid var(--border2);
+  color:var(--accent);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.2s;font-family:'Jost',sans-serif;
+}
+.dice-reroll:hover{background:var(--accent-dim);}
+.dice-reroll:active{transform:scale(0.9);}
+
+/* Bottom */
+.bottom-bar{padding:1rem 1.5rem 1.5rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;flex-shrink:0;}
+.btn-roll-all{
+  width:100%;padding:15px;background:var(--accent);color:#09080a;
+  border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;
+  transition:opacity 0.2s,transform 0.1s;
+}
+.btn-roll-all:active{transform:scale(0.98);}
+.btn-reveal{
+  width:100%;padding:14px;background:transparent;color:var(--accent);
+  border:1px solid var(--border2);font-family:'Jost',sans-serif;font-size:12px;
+  font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;
+  opacity:0;transition:opacity 0.4s;pointer-events:none;
+}
+.btn-reveal.visible{opacity:1;pointer-events:auto;}
+
+/* Reveal overlay */
+#reveal{
+  position:fixed;inset:0;background:var(--bg);z-index:50;
+  display:none;flex-direction:column;overflow-y:auto;
+  padding:2rem 1.5rem;align-items:center;gap:0.875rem;
+}
+#reveal.show{display:flex;}
+.reveal-title{
+  font-family:'Playfair Display',serif;font-size:26px;font-style:italic;
+  color:var(--accent);text-align:center;margin-bottom:0;
+}
+.reveal-sub{font-size:12px;color:var(--text3);letter-spacing:0.1em;text-align:center;text-transform:uppercase;}
+.reveal-item{
+  width:100%;max-width:380px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:3px;padding:1rem 1.25rem;
+  opacity:0;transform:translateY(10px);transition:all 0.35s;
+}
+.reveal-item.show{opacity:1;transform:translateY(0);}
+.reveal-item-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);}
+.reveal-item-val{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:var(--text);margin-top:4px;line-height:1.4;}
+.reveal-scene{
+  width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:3px;padding:1.25rem;margin-top:0.25rem;
+  opacity:0;transform:translateY(10px);transition:all 0.4s;
+}
+.reveal-scene.show{opacity:1;transform:translateY(0);}
+.reveal-scene-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;}
+.reveal-scene-text{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:var(--text);line-height:1.75;}
+.reveal-actions{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;margin-top:0.25rem;padding-bottom:1rem;}
+.btn-again{width:100%;padding:15px;background:var(--accent);color:#09080a;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-back{width:100%;padding:15px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.safeword-reminder{
+  width:100%;max-width:380px;padding:0.75rem 1rem;
+  border:1px solid var(--border);border-radius:2px;
+  font-size:11px;color:var(--text3);letter-spacing:0.05em;text-align:center;line-height:1.6;
+}
+.safeword-reminder strong{color:var(--accent);font-weight:500;}
+</style>
+</head>
+<body>
+
+<a class="back" href="../">&#9664; INDEX</a>
+
+<div id="gate">
+  <div class="gate-glyph">◈</div>
+  <h1>CNC Scenario Dice</h1>
+  <p>Explicit consensual non-consent scenario generator for adults.</p>
+  <div class="gate-notice">
+    <strong>Important:</strong> All scenarios generated by this app are for consensual roleplay only. Establish safewords and boundaries before play. Everything that follows is fiction between consenting adults.
+  </div>
+  <div class="gate-btns">
+    <button class="btn-enter" id="btn-enter">I'm 18+ & I consent — Enter</button>
+    <button class="btn-leave" id="btn-leave">Leave</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">Tonight</div>
+    <div class="header-sub">CNC · Dice</div>
+  </header>
+
+  <div class="safeword-bar">
+    Remember your safeword — <span id="safeword-display">set one before you play</span>
+  </div>
+
+  <div class="main" id="dice-area"></div>
+
+  <div class="bottom-bar">
+    <button class="btn-roll-all" id="btn-roll-all">Roll All</button>
+    <button class="btn-reveal" id="btn-reveal">Reveal Tonight's Scene →</button>
+  </div>
+</div>
+
+<div id="reveal">
+  <div class="reveal-title">Tonight's Scene</div>
+  <div class="reveal-sub">The dice have spoken</div>
+  <div id="reveal-items"></div>
+  <div class="reveal-scene" id="reveal-scene">
+    <div class="reveal-scene-label">The Scene</div>
+    <div class="reveal-scene-text" id="reveal-scene-text"></div>
+  </div>
+  <div class="safeword-reminder">
+    Reminder — your safeword is <strong id="safeword-reminder-text">—</strong>. Either partner can use it at any time, no questions asked.
+  </div>
+  <div class="reveal-actions">
+    <button class="btn-again" id="btn-again">Roll Again</button>
+    <button class="btn-back" id="btn-back">← Adjust Rolls</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: 'scenario',
+    label: 'Scenario',
+    icon: '🎭',
+    items: [
+      'Home invasion',
+      'Stranger in the night',
+      'Woke up restrained',
+      'Burglar surprises them',
+      'The setup — arranged in advance',
+      'Followed inside',
+      'Delivered to someone',
+      'Wrong room, wrong time'
+    ]
+  },
+  {
+    id: 'setting',
+    label: 'Setting',
+    icon: '📍',
+    items: [
+      'Bedroom — lights off',
+      'Living room sofa',
+      'Hallway — just got home',
+      'Bathroom — mid-shower',
+      'Restrained to a chair',
+      'Pinned to a wall',
+      'Under the covers',
+      'Wherever they happened to be'
+    ]
+  },
+  {
+    id: 'restraint',
+    label: 'Restraint',
+    icon: '🔗',
+    items: [
+      'Rope',
+      'Handcuffs',
+      'Cable ties',
+      'Tape — mouth, wrists, or both',
+      'Necktie or belt',
+      'Scarves or fabric',
+      'Bare hands — nothing used',
+      "Whatever's closest"
+    ]
+  }
+];
+
+const SCENES = [
+  r => `${r.scenario}. ${r.setting} — no way out. Restrained with: ${r.restraint.toLowerCase()}.`,
+  r => `The scene: ${r.scenario.toLowerCase()}. ${r.setting}. They've already decided how this ends. ${r.restraint}.`,
+  r => `${r.scenario}. ${r.setting}. What holds you: ${r.restraint.toLowerCase()}.`,
+  r => `${r.setting}. It begins as ${r.scenario.toLowerCase()}. ${r.restraint} — and no way out.`
+];
+
+const FACE_ROTS = [
+  {rx:'0deg',ry:'0deg'},{rx:'0deg',ry:'180deg'},
+  {rx:'0deg',ry:'-90deg'},{rx:'0deg',ry:'90deg'},
+  {rx:'-90deg',ry:'0deg'},{rx:'90deg',ry:'0deg'}
+];
+
+let results = {};
+let rollCounts = {};
+let safeword = '';
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function enterApp(){
+  // Prompt for safeword
+  const sw = prompt("Enter your safeword (or leave blank to skip):");
+  safeword = (sw && sw.trim()) ? sw.trim() : '';
+  document.getElementById('safeword-display').textContent = safeword || 'none set — please set one';
+  document.getElementById('safeword-reminder-text').textContent = safeword || 'none set';
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  buildDice();
+}
+
+function buildDice(){
+  const area = document.getElementById('dice-area');
+  area.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    rollCounts[cat.id] = 0;
+    const card = document.createElement('div');
+    card.className = 'dice-card';
+    card.id = `card-${cat.id}`;
+    card.innerHTML = `
+      <div class="die-wrap">
+        <div class="die" id="die-${cat.id}" style="--rx:0deg;--ry:0deg;">
+          <div class="face face-front">${cat.icon}</div>
+          <div class="face face-back">${cat.icon}</div>
+          <div class="face face-right">${cat.icon}</div>
+          <div class="face face-left">${cat.icon}</div>
+          <div class="face face-top">${cat.icon}</div>
+          <div class="face face-bottom">${cat.icon}</div>
+        </div>
+      </div>
+      <div class="dice-info">
+        <div class="dice-label">${cat.label}</div>
+        <div class="dice-result" id="result-${cat.id}">Tap ↻ to roll</div>
+      </div>
+      <button class="dice-reroll" data-id="${cat.id}" aria-label="Roll ${cat.label}">↻</button>
+    `;
+    area.appendChild(card);
+  });
+
+  // Wire reroll buttons
+  area.querySelectorAll('.dice-reroll').forEach(btn => {
+    btn.addEventListener('click', () => rollOne(btn.dataset.id));
+  });
+}
+
+function rollOne(id){
+  const cat = CATEGORIES.find(c => c.id === id);
+  const die = document.getElementById(`die-${id}`);
+  const resultEl = document.getElementById(`result-${id}`);
+  const card = document.getElementById(`card-${id}`);
+
+  const winner = pick(cat.items);
+  results[id] = winner;
+  rollCounts[id] = (rollCounts[id] || 0) + 1;
+
+  const rot = pick(FACE_ROTS);
+  die.style.setProperty('--rx', rot.rx);
+  die.style.setProperty('--ry', rot.ry);
+  die.classList.remove('rolling');
+  void die.offsetWidth;
+  die.classList.add('rolling');
+
+  setTimeout(() => {
+    resultEl.textContent = winner;
+    card.classList.add('rolled');
+    checkAllRolled();
+  }, 700);
+}
+
+function rollAll(){
+  CATEGORIES.forEach((cat, i) => {
+    setTimeout(() => rollOne(cat.id), i * 130);
+  });
+}
+
+function checkAllRolled(){
+  const done = CATEGORIES.every(c => results[c.id]);
+  document.getElementById('btn-reveal').classList.toggle('visible', done);
+}
+
+function showReveal(){
+  document.getElementById('reveal').classList.add('show');
+  const itemsEl = document.getElementById('reveal-items');
+  itemsEl.innerHTML = '';
+
+  CATEGORIES.forEach((cat, i) => {
+    const val = results[cat.id] || pick(cat.items);
+    const d = document.createElement('div');
+    d.className = 'reveal-item';
+    d.innerHTML = `<div class="reveal-item-label">${cat.icon} ${cat.label}</div><div class="reveal-item-val">${val}</div>`;
+    itemsEl.appendChild(d);
+    setTimeout(() => d.classList.add('show'), i * 110 + 60);
+  });
+
+  const sceneData = {
+    scenario:  results.scenario  || pick(CATEGORIES[0].items),
+    setting:   results.setting   || pick(CATEGORIES[1].items),
+    restraint: results.restraint || pick(CATEGORIES[2].items)
+  };
+  document.getElementById('reveal-scene-text').textContent = pick(SCENES)(sceneData);
+  const sceneEl = document.getElementById('reveal-scene');
+  setTimeout(() => sceneEl.classList.add('show'), CATEGORIES.length * 110 + 160);
+}
+
+function closeReveal(){
+  document.getElementById('reveal').classList.remove('show');
+  document.getElementById('reveal-scene').classList.remove('show');
+}
+
+function startOver(){
+  results = {}; rollCounts = {};
+  closeReveal();
+  document.getElementById('btn-reveal').classList.remove('visible');
+  buildDice();
+}
+
+// Wire buttons
+document.getElementById('btn-enter').addEventListener('click', enterApp);
+document.getElementById('btn-leave').addEventListener('click', () => { location.href = 'https://google.com'; });
+document.getElementById('btn-roll-all').addEventListener('click', rollAll);
+document.getElementById('btn-reveal').addEventListener('click', showReveal);
+document.getElementById('btn-again').addEventListener('click', startOver);
+document.getElementById('btn-back').addEventListener('click', closeReveal);
+</script>
+</body>
+</html>

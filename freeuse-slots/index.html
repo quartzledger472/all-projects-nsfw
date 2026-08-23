@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tonight — Slots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0908;--bg2:#111009;--bg3:#1a1814;
+  --gold:#c8a97e;--gold2:#e8c99a;
+  --gold-dim:rgba(200,169,126,0.08);--gold-mid:rgba(200,169,126,0.25);
+  --text:#f5f0e8;--text2:#9e9688;--text3:#4a4640;
+  --border:rgba(255,255,255,0.06);--border2:rgba(200,169,126,0.2);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;align-items:center;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.035;pointer-events:none;z-index:0;
+}
+.back{position:fixed;top:1.1rem;left:1.25rem;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.14em;color:var(--text3);text-decoration:none;z-index:101;}
+.back:hover{color:var(--gold);}
+
+/* Gate */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:2rem;text-align:center;}
+.gate-glyph{font-size:48px;margin-bottom:1.5rem;opacity:0.4;color:var(--gold);}
+#gate h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:0.75rem;letter-spacing:0.04em;}
+#gate p{font-size:14px;color:var(--text2);line-height:1.7;max-width:300px;margin:0 auto 2rem;}
+.gate-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;}
+.btn-enter{padding:14px;background:var(--gold);color:#0a0908;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-leave{padding:14px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+
+/* App */
+#app{display:none;flex-direction:column;width:100%;height:100%;max-width:430px;position:relative;z-index:1;}
+#app.show{display:flex;}
+
+header{padding:1.25rem 1.5rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;font-style:italic;color:var(--gold);letter-spacing:0.04em;}
+.header-sub{font-size:11px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;}
+
+/* Slot machine body */
+.slot-machine{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:1.5rem;gap:1.25rem;
+}
+
+/* Machine frame */
+.machine-frame{
+  width:100%;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:4px;
+  padding:1rem;position:relative;overflow:hidden;
+}
+.machine-frame::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-mid),transparent);
+}
+.machine-frame::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-mid),transparent);
+}
+
+/* Reel window */
+.reels-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:6px;position:relative;
+}
+
+/* Selection line */
+.reels-row::before{
+  content:'';position:absolute;
+  top:50%;transform:translateY(-50%);
+  left:-1rem;right:-1rem;
+  height:56px;
+  border-top:1px solid var(--border2);
+  border-bottom:1px solid var(--border2);
+  pointer-events:none;z-index:2;
+  background:var(--gold-dim);
+}
+
+.reel-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.reel-label{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);text-align:center;margin-bottom:2px;}
+
+/* Reel viewport */
+.reel-viewport{
+  width:100%;height:56px;overflow:hidden;position:relative;
+}
+.reel-strip{
+  display:flex;flex-direction:column;align-items:center;
+  transition:transform 0s;
+}
+.reel-item{
+  height:56px;width:100%;display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:12px;font-style:italic;
+  color:var(--text2);text-align:center;padding:4px 2px;line-height:1.3;
+  flex-shrink:0;
+}
+.reel-item.selected{color:var(--text);font-size:13px;}
+
+/* Gradient masks on reel */
+.reel-viewport::before,.reel-viewport::after{
+  content:'';position:absolute;left:0;right:0;height:20px;z-index:3;pointer-events:none;
+}
+.reel-viewport::before{top:0;background:linear-gradient(to bottom,var(--bg2),transparent);}
+.reel-viewport::after{bottom:0;background:linear-gradient(to top,var(--bg2),transparent);}
+
+/* Result display below machine */
+.result-display{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:3px;padding:1rem 1.25rem;
+  min-height:60px;display:flex;align-items:center;
+}
+.result-display-inner{width:100%;}
+.result-display-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.result-display-text{
+  font-family:'Playfair Display',serif;font-size:15px;font-style:italic;
+  color:var(--text2);line-height:1.5;
+}
+.result-display-text.filled{color:var(--text);}
+
+/* Pull lever / spin button */
+.spin-area{width:100%;display:flex;flex-direction:column;gap:10px;}
+.btn-spin{
+  width:100%;padding:16px;background:var(--gold);color:#0a0908;
+  border:none;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-radius:1px;
+  transition:opacity 0.2s,transform 0.1s;position:relative;overflow:hidden;
+}
+.btn-spin:active{transform:scale(0.98);}
+.btn-spin:disabled{opacity:0.5;cursor:default;}
+.btn-spin .shimmer{
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.2) 50%,transparent 100%);
+  transform:translateX(-100%);
+}
+.btn-spin.spinning .shimmer{animation:shimmer 1.2s infinite;}
+@keyframes shimmer{to{transform:translateX(200%);}}
+
+.btn-reveal-scene{
+  width:100%;padding:14px;background:transparent;color:var(--gold);
+  border:1px solid var(--border2);font-family:'Jost',sans-serif;font-size:12px;
+  font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;
+  opacity:0;transition:opacity 0.4s;pointer-events:none;
+}
+.btn-reveal-scene.visible{opacity:1;pointer-events:auto;}
+
+/* Reveal overlay */
+#reveal{
+  position:fixed;inset:0;background:var(--bg);z-index:50;
+  display:none;flex-direction:column;overflow-y:auto;
+  padding:2rem 1.5rem;align-items:center;gap:1rem;
+}
+#reveal.show{display:flex;}
+.reveal-title{font-family:'Playfair Display',serif;font-size:28px;font-style:italic;color:var(--gold);text-align:center;}
+.reveal-sub{font-size:13px;color:var(--text3);letter-spacing:0.08em;text-align:center;margin-bottom:0.5rem;}
+.reveal-item{
+  width:100%;max-width:380px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:3px;padding:1rem 1.25rem;
+  opacity:0;transform:translateY(10px);transition:all 0.35s;
+}
+.reveal-item.show{opacity:1;transform:translateY(0);}
+.reveal-item-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);}
+.reveal-item-val{font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--text);margin-top:4px;}
+.reveal-narrative{
+  width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:3px;padding:1.25rem;margin-top:0.5rem;
+  opacity:0;transform:translateY(10px);transition:all 0.35s;
+}
+.reveal-narrative.show{opacity:1;transform:translateY(0);}
+.reveal-narrative-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem;}
+.reveal-narrative-text{font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:var(--text);line-height:1.7;}
+.reveal-actions{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;margin-top:0.5rem;padding-bottom:1rem;}
+.btn-again{width:100%;padding:15px;background:var(--gold);color:#0a0908;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-back{width:100%;padding:15px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+</style>
+</head>
+<body>
+
+<a class="back" href="../">&#9664; INDEX</a>
+
+<div id="gate">
+  <div class="gate-glyph">▦</div>
+  <h1>Adults Only</h1>
+  <p>This app contains explicit adult content. By entering you confirm you are 18 or older.</p>
+  <div class="gate-btns">
+    <button class="btn-enter" id="btn-enter">I'm 18+ — Enter</button>
+    <button class="btn-leave" id="btn-leave">Leave</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">Tonight</div>
+    <div class="header-sub">Slots</div>
+  </header>
+
+  <div class="slot-machine">
+    <div class="machine-frame">
+      <div class="reels-row" id="reels-row"></div>
+    </div>
+
+    <div class="result-display">
+      <div class="result-display-inner">
+        <div class="result-display-label">Tonight's Scene</div>
+        <div class="result-display-text" id="result-text">Pull the lever to reveal your scene.</div>
+      </div>
+    </div>
+
+    <div class="spin-area">
+      <button class="btn-spin" id="btn-spin">
+        <span class="shimmer"></span>
+        Pull
+      </button>
+      <button class="btn-reveal-scene" id="btn-reveal">See Full Scene →</button>
+    </div>
+  </div>
+</div>
+
+<div id="reveal">
+  <div class="reveal-title">Tonight's Scene</div>
+  <div class="reveal-sub">The slots have spoken.</div>
+  <div id="reveal-items"></div>
+  <div class="reveal-narrative" id="reveal-narrative">
+    <div class="reveal-narrative-label">The Scene</div>
+    <div class="reveal-narrative-text" id="reveal-narrative-text"></div>
+  </div>
+  <div class="reveal-actions">
+    <button class="btn-again" id="btn-again">Pull Again</button>
+    <button class="btn-back" id="btn-back">← Back</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES=[
+  {id:'location',label:'Location',items:['The Bedroom','The Kitchen','Living Room','The Office','Bathroom','The Hallway','Wherever','The Sofa']},
+  {id:'initiator',label:'Initiates',items:['You','Them','First to speak',"Whoever's home",'No signal','Coin flip']},
+  {id:'rule',label:'The Rule',items:['Don\'t stop','Stay silent','Eye contact','No reaction','Stay busy','Stay clothed']},
+  {id:'mood',label:'Mood',items:['Slow','Urgent','Casual','Tender','Dominant','Languid']}
+];
+const NARRATIVES=[
+  r=>`In ${r.location}, the rule is simple: ${r.rule.toLowerCase()}. ${r.initiator} — and the mood tonight is ${r.mood.toLowerCase()}.`,
+  r=>`Tonight's scene is set in ${r.location}. The mood: ${r.mood.toLowerCase()}. The rule both of you follow: ${r.rule.toLowerCase()}. ${r.initiator}.`,
+  r=>`${r.initiator}. The setting is ${r.location}. Neither of you breaks the rule — ${r.rule.toLowerCase()}. The energy between you: ${r.mood.toLowerCase()}.`
+];
+
+let results={};
+let isSpinning=false;
+const ITEM_HEIGHT=56;
+const VISIBLE=1; // items visible above/below center
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function enterApp(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').classList.add('show');
+  buildReels();
+}
+
+function buildReels(){
+  const row=document.getElementById('reels-row');
+  row.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    const col=document.createElement('div');
+    col.className='reel-col';
+    col.innerHTML=`<div class="reel-label">${cat.label}</div>
+      <div class="reel-viewport" id="vp-${cat.id}">
+        <div class="reel-strip" id="strip-${cat.id}"></div>
+      </div>`;
+    row.appendChild(col);
+
+    // Build strip: duplicate items for seamless scroll feel
+    const strip=col.querySelector('.reel-strip');
+    const extended=[...cat.items,...cat.items,...cat.items];
+    extended.forEach(item=>{
+      const el=document.createElement('div');
+      el.className='reel-item';
+      el.textContent=item;
+      strip.appendChild(el);
+    });
+    // Start in middle set
+    const mid=cat.items.length;
+    strip.style.transform=`translateY(-${mid*ITEM_HEIGHT}px)`;
+  });
+}
+
+function spinAll(){
+  if(isSpinning)return;
+  isSpinning=true;
+  results={};
+  document.getElementById('btn-spin').classList.add('spinning');
+  document.getElementById('btn-spin').disabled=true;
+  document.getElementById('btn-reveal').classList.remove('visible');
+  document.getElementById('result-text').textContent='...';
+  document.getElementById('result-text').classList.remove('filled');
+
+  const promises=CATEGORIES.map((cat,i)=>spinReel(cat,i*200));
+  Promise.all(promises).then(()=>{
+    isSpinning=false;
+    document.getElementById('btn-spin').classList.remove('spinning');
+    document.getElementById('btn-spin').disabled=false;
+
+    // Build narrative
+    const narrative=pick(NARRATIVES)({
+      location:results.location,initiator:results.initiator,
+      rule:results.rule,mood:results.mood
+    });
+    const rt=document.getElementById('result-text');
+    rt.textContent=narrative;
+    rt.classList.add('filled');
+    document.getElementById('btn-reveal').classList.add('visible');
+  });
+}
+
+function spinReel(cat,delay){
+  return new Promise(resolve=>{
+    setTimeout(()=>{
+      const strip=document.getElementById(`strip-${cat.id}`);
+      const n=cat.items.length;
+      const winnerIdx=Math.floor(Math.random()*n);
+      results[cat.id]=cat.items[winnerIdx];
+
+      // Duration varies per reel for stagger effect
+      const dur=800+Math.random()*600;
+      const extraItems=n*3+winnerIdx;
+      const finalY=-(extraItems*ITEM_HEIGHT);
+
+      strip.style.transition='none';
+      // Reset to middle
+      strip.style.transform=`translateY(-${n*ITEM_HEIGHT}px)`;
+
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          strip.style.transition=`transform ${dur}ms cubic-bezier(0.23,1,0.32,1)`;
+          strip.style.transform=`translateY(${finalY}px)`;
+        });
+      });
+
+      setTimeout(()=>{
+        // Snap to clean position showing winner in center
+        // Winner is at index winnerIdx in the last copy (3rd set)
+        const cleanY=-((n*2+winnerIdx)*ITEM_HEIGHT);
+        strip.style.transition='none';
+        strip.style.transform=`translateY(${cleanY}px)`;
+
+        // Highlight winner
+        const items=strip.querySelectorAll('.reel-item');
+        items.forEach(el=>el.classList.remove('selected'));
+        items[n*2+winnerIdx].classList.add('selected');
+        resolve();
+      },dur+delay+50);
+    },delay);
+  });
+}
+
+function showReveal(){
+  const rev=document.getElementById('reveal');
+  rev.classList.add('show');
+  const itemsEl=document.getElementById('reveal-items');
+  itemsEl.innerHTML='';
+  const FULL_LABELS={location:'Location',initiator:'Who Initiates',rule:'The Rule',mood:'Mood'};
+  const ICONS={location:'📍',initiator:'👤',rule:'◈',mood:'◐'};
+  CATEGORIES.forEach((cat,i)=>{
+    const val=results[cat.id];
+    const d=document.createElement('div');
+    d.className='reveal-item';
+    d.innerHTML=`<div class="reveal-item-label">${ICONS[cat.id]} ${FULL_LABELS[cat.id]}</div><div class="reveal-item-val">${val}</div>`;
+    itemsEl.appendChild(d);
+    setTimeout(()=>d.classList.add('show'),i*100+50);
+  });
+  const nb=document.getElementById('reveal-narrative');
+  document.getElementById('reveal-narrative-text').textContent=document.getElementById('result-text').textContent;
+  setTimeout(()=>nb.classList.add('show'),CATEGORIES.length*100+150);
+}
+
+function closeReveal(){
+  document.getElementById('reveal').classList.remove('show');
+  document.getElementById('reveal-narrative').classList.remove('show');
+}
+
+function startOver(){
+  results={};
+  closeReveal();
+  document.getElementById('btn-reveal').classList.remove('visible');
+  document.getElementById('result-text').textContent='Pull the lever to reveal your scene.';
+  document.getElementById('result-text').classList.remove('filled');
+  buildReels();
+}
+
+document.getElementById('btn-enter').addEventListener('click', enterApp);
+document.getElementById('btn-leave').addEventListener('click', ()=>{ location.href='https://google.com'; });
+document.getElementById('btn-spin').addEventListener('click', spinAll);
+document.getElementById('btn-reveal').addEventListener('click', showReveal);
+document.getElementById('btn-again').addEventListener('click', startOver);
+document.getElementById('btn-back').addEventListener('click', closeReveal);
+</script>
+</body>
+</html>

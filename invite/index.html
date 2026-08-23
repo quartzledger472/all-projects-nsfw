@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0b0a;--bg2:#151210;--bg3:#1d1916;
+  --gold:#c9a15c;--gold2:#e6c98a;
+  --gold-dim:rgba(201,161,92,0.08);--gold-mid:rgba(201,161,92,0.22);
+  --text:#f3ede2;--text2:#a89a86;--text3:#4a4238;
+  --border:rgba(255,255,255,0.06);--border2:rgba(201,161,92,0.2);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;align-items:center;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.03;pointer-events:none;z-index:0;
+}
+.back{position:fixed;top:1.1rem;left:1.25rem;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.14em;color:var(--text3);text-decoration:none;z-index:101;}
+.back:hover{color:var(--gold);}
+
+/* Gate */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:2rem;text-align:center;}
+.gate-glyph{font-size:36px;margin-bottom:1.25rem;opacity:0.35;color:var(--gold);}
+#gate h1{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:var(--text);margin-bottom:0.5rem;letter-spacing:0.04em;}
+#gate p{font-size:13px;color:var(--text2);line-height:1.75;max-width:300px;margin:0 auto 2rem;}
+.gate-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;}
+.btn-enter{padding:14px;background:var(--gold);color:#0d0b0a;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-leave{padding:14px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+
+/* App */
+#app{display:none;flex-direction:column;width:100%;height:100%;max-width:430px;position:relative;z-index:1;}
+#app.show{display:flex;}
+
+header{padding:1.25rem 1.5rem 0;flex-shrink:0;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;font-style:italic;color:var(--gold);letter-spacing:0.04em;}
+.logo-sub{font-size:10px;letter-spacing:0.18em;color:var(--text3);text-transform:uppercase;margin-top:2px;}
+
+/* Progress dots */
+.progress{display:flex;gap:6px;padding:1rem 1.5rem 0;flex-shrink:0;}
+.dot{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.3s;}
+.dot.done{background:var(--gold);}
+.dot.current{background:var(--gold-mid);}
+
+/* Step screens */
+.screen{flex:1;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+.step{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:1rem 1.5rem 1.25rem;}
+.step-head{flex-shrink:0;margin-bottom:0.9rem;}
+.step-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:0.35rem;}
+.step-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:var(--text);}
+.step-options{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0.6rem;}
+
+.opt-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:0.95rem 1.1rem;cursor:pointer;transition:border-color 0.2s,background 0.2s;
+  font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text2);line-height:1.4;
+}
+.opt-card:hover{border-color:var(--border2);background:var(--bg2);}
+.opt-card.picked{border-color:var(--gold);background:var(--gold-dim);color:var(--text);}
+
+.step-bottom{flex-shrink:0;padding-top:1rem;display:flex;gap:10px;}
+.btn-back-step{flex:none;width:52px;background:transparent;border:1px solid var(--border);color:var(--text2);font-family:'Jost',sans-serif;font-size:14px;cursor:pointer;border-radius:1px;}
+.btn-next{flex:1;padding:14px;background:var(--gold);color:#0d0b0a;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:1px;opacity:0.35;pointer-events:none;transition:opacity 0.2s;}
+.btn-next.enabled{opacity:1;pointer-events:auto;}
+
+/* Result screen */
+#screen-result{padding:1.5rem 1.5rem 1.25rem;overflow-y:auto;align-items:center;text-align:center;}
+.result-glyph{font-size:26px;color:var(--gold);opacity:0.6;margin-bottom:0.75rem;}
+.result-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;font-style:italic;color:var(--gold2);margin-bottom:0.3rem;}
+.result-sub{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:1.5rem;}
+.invite-card{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;
+  padding:1.75rem 1.5rem;margin-bottom:1.25rem;position:relative;
+}
+.invite-card::before{
+  content:'✦';position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  background:var(--bg);color:var(--gold);font-size:16px;padding:0 10px;
+}
+.invite-text{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--text);line-height:1.75;white-space:pre-line;}
+.result-actions{width:100%;display:flex;flex-direction:column;gap:10px;}
+.btn-copy{width:100%;padding:14px;background:var(--gold);color:#0d0b0a;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:opacity 0.2s;}
+.btn-copy.copied{opacity:0.7;}
+.btn-secondary{width:100%;padding:13px;background:transparent;color:var(--text2);border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:1px;}
+.btn-secondary:hover{border-color:var(--border2);color:var(--gold2);}
+</style>
+</head>
+<body>
+
+<a class="back" href="../">&#9664; INDEX</a>
+
+<div id="gate">
+  <div class="gate-glyph">✦</div>
+  <h1>The Invitation</h1>
+  <p>Pick tonight's details, one by one, and have them woven into an invitation for your partner. For consenting adults only.</p>
+  <div class="gate-btns">
+    <button class="btn-enter" id="btn-enter">I'm 18+ — Enter</button>
+    <button class="btn-leave" id="btn-leave">Leave</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">The Invitation</div>
+    <div class="logo-sub">Craft Tonight's Invite</div>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="steps"></div>
+
+  <div class="screen" id="screen-result">
+    <div class="result-glyph">✦</div>
+    <div class="result-title">Your Invitation</div>
+    <div class="result-sub">Ready to send, your way</div>
+    <div class="invite-card">
+      <div class="invite-text" id="invite-text"></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-copy" id="btn-copy">Copy Invitation</button>
+      <button class="btn-secondary" id="btn-reword">Reword It</button>
+      <button class="btn-secondary" id="btn-restart">Start Over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const STEPS = [
+  {
+    id: 'outfit',
+    label: 'Step One',
+    title: 'What they wear',
+    items: [
+      'Just the collar, nothing else',
+      'Sheer black lingerie, heels on',
+      'His shirt, unbuttoned, nothing under it',
+      'Whatever they already have on — no time to change',
+      'Corset laced tight, everything else optional',
+      'Naked under a robe, waiting',
+      'Stockings and garter belt, nothing above the waist',
+      'Their favourite lingerie set — chosen for them'
+    ]
+  },
+  {
+    id: 'setting',
+    label: 'Step Two',
+    title: 'Where to be',
+    items: [
+      'Bedroom, lights dimmed to almost nothing',
+      'Shower, water already running',
+      'Kitchen counter, cleared off',
+      'Living room floor, blanket down',
+      'Against the bedroom door — no further than that',
+      'Bed, wrists already tied to the headboard',
+      'Bathroom, mirror facing the bed',
+      'Wherever they\'re standing when they read this'
+    ]
+  },
+  {
+    id: 'focus',
+    label: 'Step Three',
+    title: 'What happens',
+    items: [
+      'Slow and worshipped, no rushing',
+      'Teased until they\'re begging',
+      'Taken the second the door closes',
+      'Edged, denied, edged again',
+      'Given no control at all tonight',
+      'Told exactly what to do, step by step',
+      'Explored everywhere, mouth included',
+      'Held down and used properly'
+    ]
+  },
+  {
+    id: 'extra',
+    label: 'Step Four',
+    title: 'One more detail',
+    items: [
+      'Blindfold on before anything starts',
+      'Toy of their choice left out on the bed',
+      'A safeword agreed before they even walk in',
+      'Ice cubes on the nightstand',
+      'Restraints already laid out',
+      'Candles lit, nothing else on',
+      'Phone left at the door — no interruptions',
+      'One rule: no talking until told to'
+    ]
+  }
+];
+
+const TEMPLATES = [
+  p => `You're invited to something tonight.\n\nCome dressed like this: ${p.outfit}.\n\nI'll be waiting — ${lower(p.setting)}.\n\nWhat happens next: ${lower(p.focus)}.\n\nOne more thing: ${lower(p.extra)}.\n\nDon't be late.`,
+  p => `Tonight has a plan, and you're the only guest.\n\nWear: ${p.outfit}.\nLocation: ${p.setting}.\nWhat's on offer: ${p.focus}.\nSmall detail you should know: ${p.extra}.\n\nSee you soon.`,
+  p => `This is your invitation — read carefully.\n\n${p.outfit}. ${p.setting}.\n\nI intend for you to be ${lower(p.focus)}. ${p.extra}.\n\nReply only by showing up.`,
+  p => `Something's been arranged for tonight.\n\nThe dress code: ${p.outfit}.\nThe venue: ${p.setting}.\nThe evening's theme: ${lower(p.focus)}.\nA note before you arrive: ${p.extra}.`,
+  p => `Consider this a formal request for your presence tonight.\n\nAttire: ${p.outfit}.\nWhere: ${p.setting}.\nWhat to expect: ${lower(p.focus)}.\nOne condition: ${p.extra}.\n\nRSVP in person.`
+];
+
+function lower(s){ return s.charAt(0).toLowerCase() + s.slice(1); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// ── STATE ─────────────────────────────────────────────
+let current = 0;
+let picks = {};
+
+function enterApp(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  buildSteps();
+  renderProgress();
+  showStep(0);
+}
+
+// ── STEPS ─────────────────────────────────────────────
+function buildSteps(){
+  const wrap = document.getElementById('steps');
+  wrap.innerHTML = '';
+  STEPS.forEach((step, i) => {
+    const screen = document.createElement('div');
+    screen.className = 'screen';
+    screen.id = `screen-${step.id}`;
+    screen.innerHTML = `
+      <div class="step">
+        <div class="step-head">
+          <div class="step-label">${step.label}</div>
+          <div class="step-title">${step.title}</div>
+        </div>
+        <div class="step-options" id="opts-${step.id}"></div>
+        <div class="step-bottom">
+          ${i > 0 ? `<button class="btn-back-step" data-back="${i}">←</button>` : ''}
+          <button class="btn-next" id="next-${step.id}" data-next="${i}">Next</button>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(screen);
+
+    const optsEl = screen.querySelector(`#opts-${step.id}`);
+    step.items.forEach(text => {
+      const card = document.createElement('div');
+      card.className = 'opt-card';
+      card.textContent = text;
+      card.addEventListener('click', () => {
+        optsEl.querySelectorAll('.opt-card').forEach(c => c.classList.remove('picked'));
+        card.classList.add('picked');
+        picks[step.id] = text;
+        document.getElementById(`next-${step.id}`).classList.add('enabled');
+      });
+      optsEl.appendChild(card);
+    });
+  });
+
+  wrap.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.next);
+      if (i < STEPS.length - 1) {
+        showStep(i + 1);
+      } else {
+        showResult();
+      }
+    });
+  });
+  wrap.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => showStep(Number(btn.dataset.back) - 1));
+  });
+}
+
+function renderProgress(){
+  const el = document.getElementById('progress');
+  el.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.id = `dot-${i}`;
+    el.appendChild(d);
+  });
+}
+
+function showStep(i){
+  current = i;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-result').classList.remove('active');
+  document.getElementById(`screen-${STEPS[i].id}`).classList.add('active');
+  STEPS.forEach((s, idx) => {
+    const dot = document.getElementById(`dot-${idx}`);
+    dot.classList.toggle('done', idx < i || (idx === i && !!picks[s.id]));
+    dot.classList.toggle('current', idx === i);
+  });
+}
+
+// ── RESULT ────────────────────────────────────────────
+let lastTemplate = null;
+
+function craft(){
+  let tpl = pick(TEMPLATES);
+  if (TEMPLATES.length > 1) {
+    while (tpl === lastTemplate) tpl = pick(TEMPLATES);
+  }
+  lastTemplate = tpl;
+  return tpl(picks);
+}
+
+function showResult(){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-result').classList.add('active');
+  STEPS.forEach((s, idx) => document.getElementById(`dot-${idx}`).classList.add('done'));
+  document.getElementById('invite-text').textContent = craft();
+}
+
+function copyInvite(){
+  const text = document.getElementById('invite-text').textContent;
+  const btn = document.getElementById('btn-copy');
+  const done = () => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Invitation'; btn.classList.remove('copied'); }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  done();
+}
+
+function startOver(){
+  picks = {};
+  lastTemplate = null;
+  buildSteps();
+  showStep(0);
+}
+
+// ── WIRE UP ───────────────────────────────────────────
+document.getElementById('btn-enter').addEventListener('click', enterApp);
+document.getElementById('btn-leave').addEventListener('click', () => { location.href = 'https://google.com'; });
+document.getElementById('btn-copy').addEventListener('click', copyInvite);
+document.getElementById('btn-reword').addEventListener('click', () => {
+  document.getElementById('invite-text').textContent = craft();
+});
+document.getElementById('btn-restart').addEventListener('click', startOver);
+</script>
+</body>
+</html>
