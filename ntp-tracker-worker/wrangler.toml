@@ -1,3 +1,6 @@
 name = "ntp-tracker-worker"
 main = "worker.js"
 compatibility_date = "2024-09-23"
+
+# Comment-only change to trigger a Workers Builds redeploy after fixing
+# the Git integration's root directory setting.
