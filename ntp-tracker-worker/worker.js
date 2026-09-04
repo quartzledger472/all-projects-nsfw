@@ -41,11 +41,15 @@ function jsonResponse(data, status = 200) {
 // otherwise-identical anonymous requests (confirmed: same URL, same
 // headers, cf-cache-status: DYNAMIC on both — not a cache artifact, not
 // a header/fingerprint issue, just flaky on their end). A short retry
-// papers over that instead of failing the whole lookup.
-async function fetchWithRetry(url, options, attempts = 3, delayMs = 600) {
+// papers over that instead of failing the whole lookup. A 3-attempt/600ms
+// version wasn't enough — "bad streaks" apparently outlast that — so this
+// tracks how many attempts actually ran and exposes it on the response
+// object so failure responses can report real numbers instead of guesses.
+async function fetchWithRetry(url, options, attempts = 5, delayMs = 1000) {
   let res;
   for (let i = 0; i < attempts; i++) {
     res = await fetch(url, options);
+    res.attemptsMade = i + 1;
     if (res.ok || res.status === 404) return res;
     if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
@@ -199,7 +203,7 @@ async function describeUpstreamError(res) {
   } catch (err) {
     bodySnippet = '(could not read body)';
   }
-  return { status: res.status, headers, bodySnippet };
+  return { status: res.status, attemptsMade: res.attemptsMade || 1, headers, bodySnippet };
 }
 
 async function fetchUserId(username) {
