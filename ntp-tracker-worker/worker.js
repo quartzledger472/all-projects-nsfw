@@ -167,12 +167,32 @@ class UserIdCapture {
   }
 }
 
+// Temporary diagnostic: capture headers/body that hint at *why* an upstream
+// request was rejected (Cloudflare's own block pages are usually
+// self-identifying) instead of just the bare status code. Remove once the
+// 401s are understood and resolved.
+async function describeUpstreamError(res) {
+  const headerNames = ['cf-mitigated', 'cf-ray', 'server', 'content-type', 'www-authenticate'];
+  const headers = {};
+  for (const name of headerNames) {
+    const v = res.headers.get(name);
+    if (v) headers[name] = v;
+  }
+  let bodySnippet = '';
+  try {
+    bodySnippet = (await res.text()).slice(0, 300);
+  } catch (err) {
+    bodySnippet = '(could not read body)';
+  }
+  return { status: res.status, headers, bodySnippet };
+}
+
 async function fetchUserId(username) {
   const target = `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html`;
   const upstream = await fetch(target, { headers: PAGE_HEADERS });
 
   if (upstream.status === 404) return { error: 'user_not_found' };
-  if (!upstream.ok) return { error: 'upstream_error', status: upstream.status };
+  if (!upstream.ok) return { error: 'upstream_error', debug: await describeUpstreamError(upstream) };
 
   const state = { userId: null };
   await new HTMLRewriter()
@@ -284,7 +304,7 @@ async function handleComments(username, page) {
     return jsonResponse({ error: 'user_not_found', username }, 404);
   }
   if (idResult.error) {
-    return jsonResponse({ error: idResult.error, status: idResult.status }, 502);
+    return jsonResponse({ error: idResult.error, debug: idResult.debug }, 502);
   }
 
   const ajaxUrl =
@@ -304,7 +324,7 @@ async function handleComments(username, page) {
 
   const ajaxRes = await fetch(ajaxUrl, { headers: ajaxHeaders });
   if (!ajaxRes.ok) {
-    return jsonResponse({ error: 'upstream_error', status: ajaxRes.status }, 502);
+    return jsonResponse({ error: 'upstream_error', debug: await describeUpstreamError(ajaxRes) }, 502);
   }
 
   const data = await ajaxRes.json();
