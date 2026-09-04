@@ -172,11 +172,13 @@ class UserIdCapture {
 // self-identifying) instead of just the bare status code. Remove once the
 // 401s are understood and resolved.
 async function describeUpstreamError(res) {
-  const headerNames = ['cf-mitigated', 'cf-ray', 'server', 'content-type', 'www-authenticate'];
+  // Every header this time, not a hand-picked list — so a success case and
+  // a failure case can be compared side by side for anything revealing
+  // (cf-cache-status, set-cookie, vary, etc.) rather than only what we
+  // guessed might matter.
   const headers = {};
-  for (const name of headerNames) {
-    const v = res.headers.get(name);
-    if (v) headers[name] = v;
+  for (const [name, value] of res.headers.entries()) {
+    headers[name] = value;
   }
   let bodySnippet = '';
   try {
