@@ -6,7 +6,9 @@ frontend can read it — NameThatPorn serves plain HTML with no CORS headers,
 so a browser can't `fetch()` it directly from another origin.
 
 This is **not** deployed as part of the repo's static hosting. It's a
-separate Cloudflare Workers deploy on the free tier.
+separate Cloudflare Workers deploy on the free tier, auto-deployed via
+Cloudflare's Git integration (Workers Builds) on every push to `main`
+that touches this folder.
 
 ## Deploy
 
