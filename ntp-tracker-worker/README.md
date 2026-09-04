@@ -100,6 +100,19 @@ confirmed against a live fetch:
 | `fa-star` | `level-up` |
 | `fa-thumbs-o-down fa-flip-horizontal` | `helpful-confirm` |
 
+## namethatporn.com occasionally 401s
+
+namethatporn.com's own backend (LiteSpeed, not Cloudflare's WAF) rejects a
+fraction of otherwise-identical anonymous requests with a plain-text
+`401 Auth failed` — confirmed, via extensive live testing, that this isn't
+caused by anything in the request: same URL, same headers, `cf-cache-status:
+DYNAMIC` on both a passing and failing response (so it's not a cached
+error), and the exact same code path both succeeding and failing back to
+back. Most likely a load-balancing quirk on their end (e.g. one backend
+instance misbehaving). `fetchWithRetry()` retries an upstream 401 up to
+3 times with a short delay before giving up, which papers over this in
+practice.
+
 ## Known gaps / next steps
 
 - **`page > 1` on `/activity` is unverified.** It appends `?page=N` to the

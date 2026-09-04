@@ -37,6 +37,21 @@ function jsonResponse(data, status = 200) {
   });
 }
 
+// namethatporn.com's own backend intermittently 401s a fraction of
+// otherwise-identical anonymous requests (confirmed: same URL, same
+// headers, cf-cache-status: DYNAMIC on both — not a cache artifact, not
+// a header/fingerprint issue, just flaky on their end). A short retry
+// papers over that instead of failing the whole lookup.
+async function fetchWithRetry(url, options, attempts = 3, delayMs = 600) {
+  let res;
+  for (let i = 0; i < attempts; i++) {
+    res = await fetch(url, options);
+    if (res.ok || res.status === 404) return res;
+    if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return res;
+}
+
 // Icon class -> activity type, confirmed against a live profile fetch:
 //   fa-comment                        -> comment
 //   fa-check-square-o                 -> correct-answer
@@ -112,7 +127,7 @@ class TextAccumulator {
 async function handleActivity(username, page) {
   const target = `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html${page > 1 ? `?page=${page}` : ''}`;
 
-  const upstream = await fetch(target, { headers: PAGE_HEADERS });
+  const upstream = await fetchWithRetry(target, { headers: PAGE_HEADERS });
 
   if (upstream.status === 404) {
     return jsonResponse({ error: 'user_not_found', username }, 404);
@@ -167,10 +182,8 @@ class UserIdCapture {
   }
 }
 
-// Temporary diagnostic: capture headers/body that hint at *why* an upstream
-// request was rejected (Cloudflare's own block pages are usually
-// self-identifying) instead of just the bare status code. Remove once the
-// 401s are understood and resolved.
+// Captures headers/body from a failed upstream response so error JSON is
+// useful for debugging rather than just a bare status code.
 async function describeUpstreamError(res) {
   // Every header this time, not a hand-picked list — so a success case and
   // a failure case can be compared side by side for anything revealing
@@ -191,7 +204,7 @@ async function describeUpstreamError(res) {
 
 async function fetchUserId(username) {
   const target = `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html`;
-  const upstream = await fetch(target, { headers: PAGE_HEADERS });
+  const upstream = await fetchWithRetry(target, { headers: PAGE_HEADERS });
 
   if (upstream.status === 404) return { error: 'user_not_found' };
   if (!upstream.ok) return { error: 'upstream_error', debug: await describeUpstreamError(upstream) };
@@ -324,7 +337,7 @@ async function handleComments(username, page) {
     'X-Requested-With': 'XMLHttpRequest',
   };
 
-  const ajaxRes = await fetch(ajaxUrl, { headers: ajaxHeaders });
+  const ajaxRes = await fetchWithRetry(ajaxUrl, { headers: ajaxHeaders });
   if (!ajaxRes.ok) {
     return jsonResponse({ error: 'upstream_error', debug: await describeUpstreamError(ajaxRes) }, 502);
   }
@@ -357,53 +370,12 @@ async function handleComments(username, page) {
   return jsonResponse({ username, page, lastPage: state.lastPage, count: comments.length, comments });
 }
 
-// Temporary diagnostic route: fetch an arbitrary same-site path with the
-// same headers /comments and /activity use, and report back exactly what
-// came back — lets us compare namethatporn.com's response across several
-// paths (homepage, a public page, the profile page) without a redeploy
-// per hypothesis. `path` is only ever appended to NTP_ORIGIN, never used
-// to build a different host. Remove once the 401 investigation is done.
-async function handleDebug(path) {
-  const safePath = path.startsWith('/') ? path : `/${path}`;
-  const target = `${NTP_ORIGIN}${safePath}`;
-  const upstream = await fetch(target, { headers: PAGE_HEADERS });
-  const info = await describeUpstreamError(upstream);
-  return jsonResponse({ path: safePath, target, ok: upstream.ok, ...info });
-}
-
-// Calls the literal same function /comments uses internally, instead of a
-// separately hand-written fetch — rules out any chance that handleDebug's
-// request differs from fetchUserId's in some way not visible by inspection.
-async function handleDebugViaFetchUserId(username) {
-  const result = await fetchUserId(username);
-  return jsonResponse({ via: 'fetchUserId', username, ...result });
-}
-
 export default {
   async fetch(request) {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: CORS_HEADERS });
-    }
-
-    if (url.pathname === '/debug') {
-      const path = url.searchParams.get('path') || '/';
-      try {
-        return await handleDebug(path);
-      } catch (err) {
-        return jsonResponse({ error: 'fetch_failed', message: String(err) }, 502);
-      }
-    }
-
-    if (url.pathname === '/debug-fetchuserid') {
-      const dbgUsername = (url.searchParams.get('username') || '').trim();
-      if (!dbgUsername) return jsonResponse({ error: 'missing_username' }, 400);
-      try {
-        return await handleDebugViaFetchUserId(dbgUsername);
-      } catch (err) {
-        return jsonResponse({ error: 'fetch_failed', message: String(err) }, 502);
-      }
     }
 
     const username = (url.searchParams.get('username') || '').trim();
@@ -425,8 +397,7 @@ export default {
     return jsonResponse(
       {
         error: 'not_found',
-        hint:
-          'GET /comments?username=<name>[&page=<n>]  or  GET /activity?username=<name>[&page=<n>]  or  GET /debug?path=<path-on-namethatporn.com>',
+        hint: 'GET /comments?username=<name>[&page=<n>]  or  GET /activity?username=<name>[&page=<n>]',
       },
       404
     );
