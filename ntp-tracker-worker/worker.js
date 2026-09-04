@@ -369,6 +369,14 @@ async function handleDebug(path) {
   return jsonResponse({ path: safePath, target, ok: upstream.ok, ...info });
 }
 
+// Calls the literal same function /comments uses internally, instead of a
+// separately hand-written fetch — rules out any chance that handleDebug's
+// request differs from fetchUserId's in some way not visible by inspection.
+async function handleDebugViaFetchUserId(username) {
+  const result = await fetchUserId(username);
+  return jsonResponse({ via: 'fetchUserId', username, ...result });
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -381,6 +389,16 @@ export default {
       const path = url.searchParams.get('path') || '/';
       try {
         return await handleDebug(path);
+      } catch (err) {
+        return jsonResponse({ error: 'fetch_failed', message: String(err) }, 502);
+      }
+    }
+
+    if (url.pathname === '/debug-fetchuserid') {
+      const dbgUsername = (url.searchParams.get('username') || '').trim();
+      if (!dbgUsername) return jsonResponse({ error: 'missing_username' }, 400);
+      try {
+        return await handleDebugViaFetchUserId(dbgUsername);
       } catch (err) {
         return jsonResponse({ error: 'fetch_failed', message: String(err) }, 502);
       }
