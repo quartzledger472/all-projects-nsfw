@@ -355,12 +355,35 @@ async function handleComments(username, page) {
   return jsonResponse({ username, page, lastPage: state.lastPage, count: comments.length, comments });
 }
 
+// Temporary diagnostic route: fetch an arbitrary same-site path with the
+// same headers /comments and /activity use, and report back exactly what
+// came back — lets us compare namethatporn.com's response across several
+// paths (homepage, a public page, the profile page) without a redeploy
+// per hypothesis. `path` is only ever appended to NTP_ORIGIN, never used
+// to build a different host. Remove once the 401 investigation is done.
+async function handleDebug(path) {
+  const safePath = path.startsWith('/') ? path : `/${path}`;
+  const target = `${NTP_ORIGIN}${safePath}`;
+  const upstream = await fetch(target, { headers: PAGE_HEADERS });
+  const info = await describeUpstreamError(upstream);
+  return jsonResponse({ path: safePath, target, ok: upstream.ok, ...info });
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: CORS_HEADERS });
+    }
+
+    if (url.pathname === '/debug') {
+      const path = url.searchParams.get('path') || '/';
+      try {
+        return await handleDebug(path);
+      } catch (err) {
+        return jsonResponse({ error: 'fetch_failed', message: String(err) }, 502);
+      }
     }
 
     const username = (url.searchParams.get('username') || '').trim();
@@ -382,7 +405,8 @@ export default {
     return jsonResponse(
       {
         error: 'not_found',
-        hint: 'GET /comments?username=<name>[&page=<n>]  or  GET /activity?username=<name>[&page=<n>]',
+        hint:
+          'GET /comments?username=<name>[&page=<n>]  or  GET /activity?username=<name>[&page=<n>]  or  GET /debug?path=<path-on-namethatporn.com>',
       },
       404
     );
