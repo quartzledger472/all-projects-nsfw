@@ -16,6 +16,13 @@
  */
 window.PROJECTS = [
   {
+    slug: "ntp-tracker",
+    title: "NTP Tracker",
+    description: "Look up a NameThatPorn.com username and see their recent activity and comments. 18+.",
+    type: "tool",
+    added: "2026-09-04"
+  },
+  {
     slug: "invite",
     title: "The Invitation",
     description: "Pick tonight's outfit, setting, and details — get a crafted invitation to send your partner. 18+.",
