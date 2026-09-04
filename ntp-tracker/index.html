@@ -61,7 +61,8 @@ header{padding:1.25rem 1.5rem 1rem;display:flex;align-items:center;justify-conte
 .btn-search:disabled{opacity:0.5;cursor:default;}
 
 /* Main feed area */
-.main{flex:1;overflow-y:auto;padding:1.25rem 1.5rem 2rem;display:flex;flex-direction:column;gap:0.75rem;}
+.main{flex:1;overflow-y:auto;padding:1.25rem 1.5rem 2rem;display:flex;flex-direction:column;}
+#feed{display:flex;flex-direction:column;gap:0.75rem;}
 
 .hint{font-size:12px;color:var(--text3);line-height:1.7;text-align:center;padding:2.5rem 1rem;}
 .hint b{color:var(--teal);font-weight:500;}
@@ -75,26 +76,49 @@ header{padding:1.25rem 1.5rem 1rem;display:flex;align-items:center;justify-conte
 }
 .profile-line b{color:var(--teal2);text-transform:none;letter-spacing:0.02em;font-weight:500;}
 
-/* Activity cards */
+/* Comment cards */
 .item{
   background:var(--bg3);border:1px solid var(--border);border-radius:3px;
   padding:0.9rem 1.1rem;display:flex;flex-direction:column;gap:0.4rem;
 }
-.item-top{display:flex;align-items:center;gap:8px;}
-.badge{
-  font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;
-  padding:3px 8px;border-radius:999px;border:1px solid var(--border2);color:var(--teal2);
-  flex-shrink:0;
+.item-top{display:flex;align-items:baseline;gap:8px;}
+.item-title{
+  font-size:12.5px;font-weight:500;color:var(--teal2);text-decoration:none;
+  line-height:1.4;flex:1;
 }
-.badge.correct-answer{border-color:rgba(111,184,172,0.35);color:var(--teal2);}
-.badge.comment{border-color:rgba(200,169,126,0.35);color:#c8a97e;}
-.badge.level-up{border-color:rgba(196,168,224,0.35);color:#c4a8e0;}
-.badge.helpful-confirm,.badge.helpful-vote{border-color:var(--border2);color:var(--text2);}
-.badge.other{border-color:var(--border);color:var(--text3);}
-.points{font-size:11px;color:var(--teal2);font-weight:500;margin-left:auto;}
-.ago{font-size:10px;color:var(--text3);letter-spacing:0.04em;flex-shrink:0;margin-left:auto;}
-.item-top .ago{margin-left:0;}
+.item-title:hover{text-decoration:underline;}
+.ago{font-size:10px;color:var(--text3);letter-spacing:0.04em;flex-shrink:0;white-space:nowrap;}
 .item-text{font-size:13px;color:var(--text);line-height:1.55;}
+
+.btn-load-more{
+  width:100%;padding:11px;background:transparent;border:1px solid var(--border2);
+  color:var(--teal2);font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+  letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;margin-top:0.25rem;
+}
+.btn-load-more:hover{background:var(--teal-dim);}
+.btn-load-more:disabled{opacity:0.5;cursor:default;}
+.end-msg{font-size:10px;color:var(--text3);text-align:center;letter-spacing:0.06em;padding:0.75rem 0 0.25rem;}
+
+/* URL box — persists independently of the comment feed re-renders */
+#url-box-wrap{flex-shrink:0;padding-bottom:1rem;border-bottom:1px solid var(--border);margin-bottom:0.25rem;}
+.url-box-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:0.4rem;}
+.url-box-label{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);}
+.url-box-actions{display:flex;gap:6px;flex-shrink:0;}
+.btn-mini{
+  padding:5px 10px;background:transparent;border:1px solid var(--border2);color:var(--teal2);
+  font-family:'Jost',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;border-radius:2px;white-space:nowrap;
+}
+.btn-mini:hover{background:var(--teal-dim);}
+.btn-mini:disabled{opacity:0.4;cursor:default;}
+#url-box{
+  width:100%;min-height:84px;max-height:160px;resize:vertical;background:var(--bg2);
+  border:1px solid var(--border);border-radius:2px;color:var(--text2);font-family:monospace;
+  font-size:11px;line-height:1.5;padding:0.6rem 0.7rem;outline:none;
+}
+#url-box::placeholder{color:var(--text3);font-family:'Jost',sans-serif;}
+#url-box:focus{border-color:var(--border2);}
+.url-box-status{font-size:10px;color:var(--text3);margin-top:0.35rem;letter-spacing:0.03em;}
 
 footer{
   padding:0.9rem 1.5rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0;
@@ -114,7 +138,7 @@ footer code{color:var(--teal2);font-family:monospace;}
 <div id="gate">
   <div class="gate-glyph">◈</div>
   <h1>NTP Tracker</h1>
-  <p>Look up a NameThatPorn.com profile's activity feed. Pulls user-submitted comments and activity from an adult trivia site — 18+.</p>
+  <p>Look up a NameThatPorn.com profile's comments. Pulls user-submitted comments from an adult trivia site — 18+.</p>
   <div class="gate-btns">
     <button class="btn-enter" id="btn-enter">I'm 18+ — Enter</button>
     <button class="btn-leave" id="btn-leave">Leave</button>
@@ -124,7 +148,7 @@ footer code{color:var(--teal2);font-family:monospace;}
 <div id="app">
   <header>
     <div class="logo">NTP Tracker</div>
-    <div class="header-sub">Activity Feed</div>
+    <div class="header-sub">Comments</div>
   </header>
 
   <div class="search-bar">
@@ -132,8 +156,22 @@ footer code{color:var(--teal2);font-family:monospace;}
     <button class="btn-search" id="btn-search">Look Up</button>
   </div>
 
-  <div class="main" id="feed">
-    <p class="hint">Enter a username above — e.g. <b>redcollar1275</b> — to pull their recent activity and comments.</p>
+  <div class="main">
+    <div id="url-box-wrap">
+      <div class="url-box-head">
+        <span class="url-box-label">Comment links</span>
+        <div class="url-box-actions">
+          <button class="btn-mini" id="btn-load-all" disabled>Load all pages</button>
+          <button class="btn-mini" id="btn-copy-urls">Copy</button>
+        </div>
+      </div>
+      <textarea id="url-box" readonly placeholder="Links to the posts each comment lives on will appear here — one per line, ready to copy."></textarea>
+      <p class="url-box-status" id="url-box-status"></p>
+    </div>
+
+    <div id="feed">
+      <p class="hint">Enter a username above — e.g. <b>redcollar1275</b> — to pull their recent comments.</p>
+    </div>
   </div>
 
   <footer id="footer-note"></footer>
@@ -148,15 +186,10 @@ const feedEl = document.getElementById('feed');
 const inputEl = document.getElementById('username-input');
 const btnEl = document.getElementById('btn-search');
 const footerEl = document.getElementById('footer-note');
-
-const TYPE_LABELS = {
-  'correct-answer': 'Correct Answer',
-  'comment': 'Comment',
-  'level-up': 'Level Up',
-  'helpful-confirm': 'Confirm',
-  'helpful-vote': 'Vote',
-  'other': 'Activity'
-};
+const urlBoxEl = document.getElementById('url-box');
+const urlStatusEl = document.getElementById('url-box-status');
+const btnLoadAllEl = document.getElementById('btn-load-all');
+const btnCopyEl = document.getElementById('btn-copy-urls');
 
 function escapeHtml(s) {
   const d = document.createElement('div');
@@ -168,33 +201,132 @@ function renderStatus(msg, isError) {
   feedEl.innerHTML = `<p class="status-msg${isError ? ' error' : ''}">${escapeHtml(msg)}</p>`;
 }
 
-function renderActivity(username, activity) {
-  if (!activity.length) {
+// Holds everything loaded so far for the current profile so "Load more" /
+// "Load all pages" can append pages without re-fetching what's already
+// shown, and so the URL box (below) always reflects the same data.
+let state = {
+  username: '',
+  page: 0,
+  lastPage: null,
+  comments: [],
+  loadingMore: false,
+  loadingAll: false,
+  loadError: false,
+};
+
+function renderList() {
+  const { username, comments, page, lastPage, loadingMore, loadingAll, loadError } = state;
+
+  if (!comments.length) {
     feedEl.innerHTML =
       `<p class="profile-line">Profile: <b>${escapeHtml(username)}</b></p>` +
-      `<p class="status-msg">No activity found on this page.</p>`;
+      `<p class="status-msg">No comments found on this page.</p>`;
     return;
   }
 
-  const rows = activity.map((item) => {
-    const label = TYPE_LABELS[item.type] || TYPE_LABELS.other;
-    const points = item.pointsDelta != null
-      ? `<span class="points">+${item.pointsDelta} pts</span>`
-      : '';
-    return `
+  const rows = comments.map((c) => `
       <div class="item">
         <div class="item-top">
-          <span class="badge ${escapeHtml(item.type)}">${escapeHtml(label)}</span>
-          ${points}
-          <span class="ago">${escapeHtml(item.ago || '')}</span>
+          <a class="item-title" href="${escapeHtml(c.postHref || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.postTitle || 'Untitled post')}</a>
+          <span class="ago">${escapeHtml(c.ago || '')}</span>
         </div>
-        <div class="item-text">${escapeHtml(item.text)}</div>
-      </div>`;
-  }).join('');
+        <div class="item-text">${escapeHtml(c.text)}</div>
+      </div>`).join('');
 
+  const hasMore = lastPage != null && page < lastPage;
+  const busy = loadingMore || loadingAll;
+  let footerHtml = '';
+  if (hasMore) {
+    const label = loadingMore ? 'Loading…' : loadError ? 'Failed — Retry' : 'Load more';
+    footerHtml = `<button class="btn-load-more" id="btn-load-more" ${busy ? 'disabled' : ''}>${escapeHtml(label)}</button>`;
+  } else if (lastPage != null) {
+    footerHtml = `<p class="end-msg">End of comments &middot; page ${page} of ${lastPage}</p>`;
+  }
+
+  const pageLabel = lastPage != null ? ` &middot; page ${page} of ${lastPage}` : '';
   feedEl.innerHTML =
-    `<p class="profile-line">Profile: <b>${escapeHtml(username)}</b> &middot; ${activity.length} items</p>` +
-    rows;
+    `<p class="profile-line">Profile: <b>${escapeHtml(username)}</b> &middot; ${comments.length} comments${pageLabel}</p>` +
+    rows +
+    footerHtml;
+}
+
+// The URL box is a separate persistent element (not rewritten by renderList),
+// so it just reflects state.comments — one link per comment — whenever
+// state changes, however that state got loaded (page 1, Load more, or
+// Load all pages).
+function renderUrlBox() {
+  const { comments, page, lastPage, loadingAll } = state;
+  const urls = comments.map((c) => c.postHref).filter(Boolean);
+  urlBoxEl.value = urls.join('\n');
+
+  const hasMore = lastPage != null && page < lastPage;
+
+  if (!comments.length) {
+    urlStatusEl.textContent = '';
+  } else if (loadingAll) {
+    urlStatusEl.textContent = `Loading all pages… ${page} of ${lastPage} (${urls.length} links so far)`;
+  } else if (hasMore) {
+    urlStatusEl.textContent = `${urls.length} links from page 1–${page} of ${lastPage}.`;
+  } else {
+    urlStatusEl.textContent = `${urls.length} links — all pages loaded.`;
+  }
+
+  btnLoadAllEl.disabled = loadingAll || state.loadingMore || !hasMore;
+  btnLoadAllEl.textContent = loadingAll ? 'Loading…' : 'Load all pages';
+}
+
+async function fetchNextPage() {
+  const nextPage = state.page + 1;
+  const res = await fetch(`${WORKER_URL}/comments?username=${encodeURIComponent(state.username)}&page=${nextPage}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || String(res.status));
+
+  state.comments = state.comments.concat(data.comments || []);
+  state.page = data.page || nextPage;
+  state.lastPage = data.lastPage != null ? data.lastPage : state.lastPage;
+}
+
+async function loadMore() {
+  if (state.loadingMore || state.loadingAll || state.lastPage == null || state.page >= state.lastPage) return;
+
+  state.loadingMore = true;
+  state.loadError = false;
+  renderList();
+  renderUrlBox();
+
+  try {
+    await fetchNextPage();
+  } catch (err) {
+    state.loadError = true;
+  } finally {
+    state.loadingMore = false;
+    renderList();
+    renderUrlBox();
+  }
+}
+
+async function loadAllPages() {
+  if (state.loadingMore || state.loadingAll || state.lastPage == null) return;
+
+  state.loadingAll = true;
+  state.loadError = false;
+  renderList();
+  renderUrlBox();
+
+  while (state.page < state.lastPage) {
+    try {
+      await fetchNextPage();
+      renderList();
+      renderUrlBox();
+    } catch (err) {
+      state.loadError = true;
+      break;
+    }
+  }
+
+  state.loadingAll = false;
+  renderList();
+  renderUrlBox();
 }
 
 async function lookup() {
@@ -212,7 +344,7 @@ async function lookup() {
   renderStatus('Looking up ' + username + ' …', false);
 
   try {
-    const res = await fetch(`${WORKER_URL}/activity?username=${encodeURIComponent(username)}`);
+    const res = await fetch(`${WORKER_URL}/comments?username=${encodeURIComponent(username)}`);
     const data = await res.json();
 
     if (!res.ok) {
@@ -226,7 +358,17 @@ async function lookup() {
       return;
     }
 
-    renderActivity(data.username, data.activity || []);
+    state = {
+      username: data.username,
+      page: data.page || 1,
+      lastPage: data.lastPage != null ? data.lastPage : null,
+      comments: data.comments || [],
+      loadingMore: false,
+      loadingAll: false,
+      loadError: false,
+    };
+    renderList();
+    renderUrlBox();
   } catch (err) {
     renderStatus('Could not reach the worker. Check WORKER_URL and your connection.', true);
   } finally {
@@ -243,8 +385,25 @@ document.getElementById('btn-leave').addEventListener('click', () => { location.
 
 btnEl.addEventListener('click', lookup);
 inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') lookup(); });
+feedEl.addEventListener('click', (e) => {
+  if (e.target.closest('#btn-load-more')) loadMore();
+});
 
-footerEl.innerHTML = 'Data pulled from NameThatPorn.com profile pages via a Cloudflare Worker (server-side fetch — see <code>ntp-tracker-worker/</code>). Not affiliated with NameThatPorn.';
+btnLoadAllEl.addEventListener('click', loadAllPages);
+btnCopyEl.addEventListener('click', async () => {
+  if (!urlBoxEl.value) return;
+  try {
+    await navigator.clipboard.writeText(urlBoxEl.value);
+  } catch (err) {
+    urlBoxEl.select();
+    document.execCommand('copy');
+  }
+  const original = btnCopyEl.textContent;
+  btnCopyEl.textContent = 'Copied!';
+  setTimeout(() => { btnCopyEl.textContent = original; }, 1200);
+});
+
+footerEl.innerHTML = 'Data pulled from NameThatPorn.com via a Cloudflare Worker (server-side fetch — see <code>ntp-tracker-worker/</code>). Not affiliated with NameThatPorn.';
 </script>
 </body>
 </html>
