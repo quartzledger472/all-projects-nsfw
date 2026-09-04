@@ -10,7 +10,19 @@
 
 const NTP_ORIGIN = 'https://namethatporn.com';
 const USERNAME_RE = /^[a-zA-Z0-9_.-]{1,40}$/;
-const UA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (compatible; ntp-tracker/1.0)' };
+
+// A worker's outbound fetch() previously used a bare, clearly-non-browser
+// User-Agent. namethatporn.com is itself behind Cloudflare, and requests
+// were coming back 401 — closer-to-browser headers on both the page fetch
+// and the AJAX fetch (with a matching Referer) to see if that's enough to
+// get past whatever's distinguishing this from a real browser request.
+const PAGE_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  Referer: `${NTP_ORIGIN}/`,
+};
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -100,7 +112,7 @@ class TextAccumulator {
 async function handleActivity(username, page) {
   const target = `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html${page > 1 ? `?page=${page}` : ''}`;
 
-  const upstream = await fetch(target, { headers: UA_HEADERS });
+  const upstream = await fetch(target, { headers: PAGE_HEADERS });
 
   if (upstream.status === 404) {
     return jsonResponse({ error: 'user_not_found', username }, 404);
@@ -157,7 +169,7 @@ class UserIdCapture {
 
 async function fetchUserId(username) {
   const target = `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html`;
-  const upstream = await fetch(target, { headers: UA_HEADERS });
+  const upstream = await fetch(target, { headers: PAGE_HEADERS });
 
   if (upstream.status === 404) return { error: 'user_not_found' };
   if (!upstream.ok) return { error: 'upstream_error', status: upstream.status };
@@ -280,7 +292,17 @@ async function handleComments(username, page) {
     `&a=uxpagnat&u=${encodeURIComponent(idResult.userId)}&un=${encodeURIComponent(username)}` +
     `&ct=comments&cp=${page}`;
 
-  const ajaxRes = await fetch(ajaxUrl, { headers: UA_HEADERS });
+  // Headers matching what an XHR fired from the profile page itself would
+  // send — Referer pointing at that page, and the X-Requested-With marker
+  // jQuery/most frontends set automatically on AJAX calls.
+  const ajaxHeaders = {
+    ...PAGE_HEADERS,
+    Accept: 'application/json, text/javascript, */*; q=0.01',
+    Referer: `${NTP_ORIGIN}/user/${encodeURIComponent(username)}.html`,
+    'X-Requested-With': 'XMLHttpRequest',
+  };
+
+  const ajaxRes = await fetch(ajaxUrl, { headers: ajaxHeaders });
   if (!ajaxRes.ok) {
     return jsonResponse({ error: 'upstream_error', status: ajaxRes.status }, 502);
   }
