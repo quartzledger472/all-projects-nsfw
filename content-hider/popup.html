@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Section Hider</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <strong>Section Hider</strong>
+      <div id="host" class="host"></div>
+    </header>
+    <div id="body">
+      <label class="row">
+        <span>Enabled on this site</span>
+        <input type="checkbox" id="enabled" />
+      </label>
+
+      <button id="pick" class="primary">Pick element to hide</button>
+
+      <div class="add-row">
+        <input type="text" id="textInput" placeholder="Hide by text, e.g. Big points" />
+        <button id="addText">Add</button>
+      </div>
+
+      <ul id="rules"></ul>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
